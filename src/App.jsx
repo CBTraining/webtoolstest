@@ -35,15 +35,23 @@ function App() {
   const [filename, setFilename] = useState('clipboard_image');
   const [pendingBlob, setPendingBlob] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [globalToast, setGlobalToast] = useState(null);
   const inputRef = useRef(null);
 
   // Focus input when modal opens
   useEffect(() => {
     if (showModal && inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select();
     }
   }, [showModal]);
+
+  // Clear global toast after 3 seconds
+  useEffect(() => {
+    if (globalToast) {
+      const timer = setTimeout(() => setGlobalToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [globalToast]);
 
   // Track mouse position for glowing card effect
   useEffect(() => {
@@ -83,15 +91,11 @@ function App() {
     };
 
     const handlePaste = async (e) => {
-      // Don't intercept if user is typing in an input fieldor textarea
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return;
-      }
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       const items = e.clipboardData?.items;
       let hasImageBlob = false;
 
-      // 1. Pass: Native image blob (Normal paste)
       if (items) {
         for (let i = 0; i < items.length; i++) {
           if (items[i].type.indexOf('image') !== -1) {
@@ -106,7 +110,6 @@ function App() {
         }
       }
 
-      // 2. Pass: Try Async Clipboard API (for heavily sandboxed sources like Google Slides)
       if (!hasImageBlob && navigator.clipboard && navigator.clipboard.read) {
         try {
           const clipboardItems = await navigator.clipboard.read();
@@ -129,85 +132,22 @@ function App() {
         }
       }
 
-      // 3. Pass: text/html fallback (Google Slides, Web Content)
       if (!hasImageBlob) {
         for (let i = 0; i < items.length; i++) {
           if (items[i].type === 'text/html') {
             e.preventDefault();
             items[i].getAsString(async (html) => {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(html, 'text/html');
-              const imgElement = doc.querySelector('img');
-              
-              if (imgElement && imgElement.src) {
-                try {
-                  let response;
-                  try {
-                    // 1. Try direct fetch (works if Google sends CORS headers)
-                    response = await fetch(imgElement.src);
-                    if (!response.ok) throw new Error("Direct fetch not ok");
-                  } catch (e1) {
-                    try {
-                      // 2. Fallback to corsproxy.io
-                      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
-                      response = await fetch(proxyUrl);
-                      if (!response.ok) throw new Error("CorsProxy failed");
-                    } catch (e2) {
-                      // 3. Fallback to allorigins
-                      const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgElement.src)}`;
-                      response = await fetch(proxyUrl2);
-                    }
-                  }
-                  
-                  if (!response || !response.ok) throw new Error("All proxy attempts failed or blocked");
-                  
-                  const blob = await response.blob();
-                  
-                  // Ensure it's an image blob
-                  if (blob.type.startsWith('image/')) {
-                    setPendingBlob(blob);
-                    setFilename('clipboard_image');
-                    setShowModal(true);
-                  } else {
-                    alert("Pasted item was parsed, but the fetched resource is not an image (Type: " + blob.type + ")");
-                  }
-                } catch (err) {
-                  console.warn('Failed to load image from HTML paste via proxies.', err);
-                  alert(`Failed to load Google Slides image. It might be heavily restricted by Google. Error: ${err.message}. Src: ${imgElement.src.substring(0, 80)}...`);
-                }
-              } else {
-                // Check if it's an SVG export
-                const svgElement = doc.querySelector('svg');
-                if (svgElement) {
-                  const svgString = new XMLSerializer().serializeToString(svgElement);
-                  const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
-                  const url = URL.createObjectURL(svgBlob);
-                  const img = new Image();
-                  img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width || 800;
-                    canvas.height = img.height || 600;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    canvas.toBlob((pngBlob) => {
-                      setPendingBlob(pngBlob);
-                      setFilename('clipboard_image');
-                      setShowModal(true);
-                    }, 'image/png');
-                  };
-                  img.src = url;
-                  return;
-                }
-                
-                // Still nothing? Alert the diagnostic payload if it's from Google Docs
-                if (html.includes('docs-internal-guid') || html.includes('google')) {
-                  alert("We detected a Google Slides paste, but no image or SVG was found! Please tell me this: \\n\\n" + html.substring(0, 500));
-                }
+              const handled = await processHtmlPaste(html);
+              if (!handled) {
+                 setGlobalToast("No image found in clipboard.");
+                 window.dispatchEvent(new Event('paste-error'));
               }
             });
-            break;
+            return;
           }
         }
+        setGlobalToast("No image found in clipboard.");
+        window.dispatchEvent(new Event('paste-error'));
       }
     };
     
@@ -218,6 +158,7 @@ function App() {
   const handleManualPaste = async () => {
     try {
       const clipboardItems = await navigator.clipboard.read();
+      let handled = false;
       for (const clipboardItem of clipboardItems) {
         const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
         if (imageTypes.length > 0) {
@@ -225,16 +166,85 @@ function App() {
             const blob = await clipboardItem.getType(type);
             if (blob) {
               processImageBlob(blob);
+              handled = true;
               return;
             }
           }
         }
+        // Try text/html if no images found
+        if (!handled && clipboardItem.types.includes('text/html')) {
+          const blob = await clipboardItem.getType('text/html');
+          const html = await blob.text();
+          handled = await processHtmlPaste(html);
+          if (handled) return;
+        }
       }
-      alert("No image found in clipboard. Make sure you copied an image!");
+      
+      if (!handled) {
+        setGlobalToast("No image found in clipboard.");
+        window.dispatchEvent(new Event('paste-error'));
+      }
     } catch (err) {
       console.warn("Clipboard API failed:", err);
-      alert("Could not access clipboard. Please ensure you have granted clipboard permissions to this site.");
+      setGlobalToast("Could not access clipboard. Please grant permission.");
+      window.dispatchEvent(new Event('paste-error'));
     }
+  };
+
+  const processHtmlPaste = async (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const imgElement = doc.querySelector('img');
+    
+    if (imgElement && imgElement.src) {
+      try {
+        let response;
+        try {
+          response = await fetch(imgElement.src);
+          if (!response.ok) throw new Error("Direct fetch not ok");
+        } catch (e1) {
+          try {
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
+            response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error("CorsProxy failed");
+          } catch (e2) {
+            const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgElement.src)}`;
+            response = await fetch(proxyUrl2);
+          }
+        }
+        
+        if (!response || !response.ok) throw new Error("All proxy attempts failed");
+        
+        const blob = await response.blob();
+        if (blob.type.startsWith('image/')) {
+          processImageBlob(blob);
+          return true;
+        }
+      } catch (err) {
+        console.warn('Failed to load image from HTML paste via proxies.', err);
+      }
+    } else {
+      const svgElement = doc.querySelector('svg');
+      if (svgElement) {
+        const svgString = new XMLSerializer().serializeToString(svgElement);
+        const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width || 800;
+          canvas.height = img.height || 600;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          canvas.toBlob((pngBlob) => {
+            processImageBlob(pngBlob);
+          }, 'image/png');
+        };
+        img.src = url;
+        return true;
+      }
+    }
+    return false;
   };
 
   const handleDownload = () => {
@@ -277,8 +287,10 @@ function App() {
           </div>
         </div>
         
-        {isSidebarOpen && (
-          <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+        {globalToast && (
+          <div className="toast animate-fade-in" style={{ position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000, background: '#ff4444', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+            {globalToast}
+          </div>
         )}
 
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onManualPaste={handleManualPaste} />

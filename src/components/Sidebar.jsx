@@ -12,11 +12,21 @@ import {
   QrCodeIcon,
   ClipboardDocumentIcon
 } from '@heroicons/react/24/solid';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './Sidebar.css';
 
 export default function Sidebar({ isOpen, onClose, onManualPaste }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+
+  useEffect(() => {
+    const handleError = () => {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+    };
+    window.addEventListener('paste-error', handleError);
+    return () => window.removeEventListener('paste-error', handleError);
+  }, []);
 
   // Handle Drag Events for Passive Side-bar Drops
   const handleDragOver = (e) => {
@@ -114,7 +124,7 @@ export default function Sidebar({ isOpen, onClose, onManualPaste }) {
         <div className="logo-container" style={{ alignItems: 'center' }}>
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="WebTools Logo" width="28" height="28" style={{ marginRight: '4px' }} />
           <h2>Web<span className="text-gradient">Tools</span></h2>
-          <span className="version">v2.07</span>
+          <span className="version">v2.08</span>
         </div>
         <div style={{marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4'}}>
           <p><strong>Tip:</strong> CTRL+V to Save Named.</p>
@@ -151,7 +161,7 @@ export default function Sidebar({ isOpen, onClose, onManualPaste }) {
       <div style={{ padding: '1.5rem', marginTop: 'auto', borderTop: '1px solid var(--border-default)' }}>
         <button 
           onClick={onManualPaste}
-          className="btn btn-primary" 
+          className={`btn btn-primary ${isShaking ? 'shake-error' : ''}`}
           style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
         >
           <ClipboardDocumentIcon style={{width: '20px', height: '20px'}} />
