@@ -15,8 +15,11 @@ import BackgroundDots from './components/BackgroundDots';
 
 const Home = () => (
   <div className="animate-fade-in">
-    <div className="page-header">
+    <div className="page-header" style={{ marginBottom: '0.5rem', borderBottom: 'none', paddingBottom: '0' }}>
       <h1>Welcome to WebTools</h1>
+    </div>
+    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+      Made by Christopher Gammello
     </div>
     <p>A suite of offline-capable, highly aesthetic client-side utilities.</p>
     <div className="glass-panel" style={{marginTop: '2rem'}}>
