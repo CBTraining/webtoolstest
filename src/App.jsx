@@ -124,7 +124,7 @@ function App() {
             <Bars3Icon style={{width: '28px', height: '28px'}} />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1rem' }}>
-            <img src={`${import.meta.env.BASE_URL}masked-icon.svg`} alt="WebTools Logo" width="24" height="24" />
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="WebTools Logo" width="24" height="24" />
             <span style={{ fontWeight: 'normal', fontSize: '1.2rem' }}>Web<span className="text-gradient">Tools</span></span>
           </div>
         </div>
