@@ -58,19 +58,30 @@ export default function VideoCompressor() {
     setProgress(0);
     setLog('Starting process...');
 
-    const ffmpeg = ffmpegRef.current;
-    
-    // Write file to memory
-    await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
+    try {
+      const ffmpeg = ffmpegRef.current;
+      
+      // Write file to memory
+      await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
 
-    // Compress Video: Re-encode with lower bitrate/CRF
-    await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', '28', '-preset', 'fast', 'output.mp4']);
-    const data = await ffmpeg.readFile('output.mp4');
-    const blob = new Blob([data.buffer], { type: 'video/mp4' });
-    setResultUrl(URL.createObjectURL(blob));
+      // Compress Video: Re-encode with lower bitrate/CRF
+      const execResult = await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', '28', '-preset', 'fast', 'output.mp4']);
+      if (execResult !== 0) {
+        throw new Error(`FFmpeg execution failed with code ${execResult}`);
+      }
 
-    setIsProcessing(false);
-    playDing();
+      const data = await ffmpeg.readFile('output.mp4');
+      if (data.length === 0) throw new Error("Generated video is 0 bytes");
+
+      const blob = new Blob([data], { type: 'video/mp4' });
+      setResultUrl(URL.createObjectURL(blob));
+      playDing();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to compress video: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -137,10 +148,17 @@ export default function VideoCompressor() {
                 }}>
                   <h4 style={{marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem'}}>
                     <div className="loader" style={{width: '14px', height: '14px'}}></div>
-                    Compressing... {Math.round(progress * 100)}%
+                    {progress >= 0 && progress <= 1 ? `Compressing... ${Math.round(progress * 100)}%` : `Compressing...`}
                   </h4>
-                  <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '6px', borderRadius: '4px', marginBottom: '0.5rem' }}>
-                    <div style={{ width: `${progress * 100}%`, background: 'var(--accent-color)', height: '100%', borderRadius: '4px', transition: 'width 0.2s' }}></div>
+                  <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '6px', borderRadius: '4px', marginBottom: '0.5rem', overflow: 'hidden' }}>
+                    <div style={{ 
+                      width: progress >= 0 && progress <= 1 ? `${progress * 100}%` : '100%', 
+                      background: 'var(--accent-color)', 
+                      height: '100%', 
+                      borderRadius: '4px', 
+                      transition: 'width 0.2s',
+                      opacity: progress >= 0 && progress <= 1 ? 1 : 0.5 
+                    }}></div>
                   </div>
                   <small style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', display: 'block', height: '1.5em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{log}</small>
                 </div>

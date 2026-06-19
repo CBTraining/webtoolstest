@@ -81,36 +81,48 @@ export default function VideoToGif() {
     setProgress(0);
     setLog('Starting process...');
 
-    const ffmpeg = ffmpegRef.current;
-    
-    // Write file to memory
-    await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
+    try {
+      const ffmpeg = ffmpegRef.current;
+      
+      // Write file to memory
+      await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
 
-    const targetFps = Math.floor(5 + ((quality - 1) / 99) * 15); // 5 to 20 fps
-    const targetScale = Math.floor(240 + ((quality - 1) / 99) * 560); // 240 to 800 width
+      const targetFps = Math.floor(5 + ((quality - 1) / 99) * 15); // 5 to 20 fps
+      const targetScale = Math.floor(240 + ((quality - 1) / 99) * 560); // 240 to 800 width
 
-    let args = [];
-    
-    // Determine cropping
-    if (enableCrop) {
-      args.push('-ss', startTime.toString(), '-to', endTime.toString());
+      let args = [];
+      
+      // Determine cropping
+      if (enableCrop) {
+        args.push('-ss', startTime.toString(), '-to', endTime.toString());
+      }
+      
+      // Convert to GIF: Generate palette, then apply
+      // Use scale=w:-2 to ensure height is divisible by 2, avoiding some filter crashes
+      args.push(
+        '-i', 'input.mp4', 
+        '-vf', `fps=${targetFps},scale=${targetScale}:-2:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`, 
+        '-loop', '0', 
+        'output.gif'
+      );
+
+      const execResult = await ffmpeg.exec(args);
+      if (execResult !== 0) {
+        throw new Error(`FFmpeg execution failed with code ${execResult}`);
+      }
+
+      const data = await ffmpeg.readFile('output.gif');
+      if (data.length === 0) throw new Error("Generated GIF is 0 bytes");
+
+      const blob = new Blob([data], { type: 'image/gif' });
+      setResultUrl(URL.createObjectURL(blob));
+      playDing();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create GIF: " + err.message);
+    } finally {
+      setIsProcessing(false);
     }
-    
-    // Convert to GIF: Generate palette, then apply
-    args.push(
-      '-i', 'input.mp4', 
-      '-vf', `fps=${targetFps},scale=${targetScale}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse`, 
-      '-loop', '0', 
-      'output.gif'
-    );
-
-    await ffmpeg.exec(args);
-    const data = await ffmpeg.readFile('output.gif');
-    const blob = new Blob([data.buffer], { type: 'image/gif' });
-    setResultUrl(URL.createObjectURL(blob));
-
-    setIsProcessing(false);
-    playDing();
   };
 
   return (
