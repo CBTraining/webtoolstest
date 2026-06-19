@@ -15,11 +15,17 @@ export default function VideoTools() {
   // FFmpeg instance
   const ffmpegRef = useRef(new FFmpeg());
   const [isReady, setIsReady] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
       const ffmpeg = ffmpegRef.current;
+      if (ffmpeg.loaded) {
+        setIsReady(true);
+        return;
+      }
+      
+      const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
       
       ffmpeg.on('log', ({ message }) => {
         setLog(message);
@@ -29,13 +35,16 @@ export default function VideoTools() {
         setProgress(progress);
       });
 
-      // Using the standard non-multithreaded core for maximum compatibility (e.g. GitHub Pages without COOP/COEP headers)
-      await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-      });
-      
-      setIsReady(true);
+      try {
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        });
+        setIsReady(true);
+      } catch (err) {
+        console.error('Failed to load FFmpeg:', err);
+        setLoadError('Failed to load FFmpeg engine. Please check your connection.');
+      }
     };
     
     load();
@@ -88,10 +97,15 @@ export default function VideoTools() {
       </div>
       <p>Compress videos or convert them to GIFs instantly, fully in your browser.</p>
       
-      {!isReady && (
+      {!isReady && !loadError && (
         <div className="glass-panel" style={{marginBottom: '1rem', background: 'var(--accent-transparent)', border: '1px solid var(--accent-color)'}}>
           <div className="loader" style={{width: '16px', height: '16px', marginRight: '10px'}}></div>
           Loading FFmpeg engine...
+        </div>
+      )}
+      {loadError && (
+        <div className="glass-panel" style={{marginBottom: '1rem', background: 'rgba(255, 77, 79, 0.1)', border: '1px solid var(--danger-color)', color: 'var(--danger-color)'}}>
+          <strong>Error: </strong> {loadError}
         </div>
       )}
 
