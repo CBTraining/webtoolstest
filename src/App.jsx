@@ -69,26 +69,27 @@ function App() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  const processImageBlob = useCallback((blob) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob((pngBlob) => {
+        if (!pngBlob) return;
+        setPendingBlob(pngBlob);
+        setFilename('clipboard_image');
+        setShowModal(true);
+      }, 'image/png');
+    };
+    img.src = URL.createObjectURL(blob);
+  }, []);
+
   // Global Clipboard Listener
   useEffect(() => {
-    const processImageBlob = (blob) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        
-        canvas.toBlob((pngBlob) => {
-          if (!pngBlob) return;
-          setPendingBlob(pngBlob);
-          setFilename('clipboard_image');
-          setShowModal(true);
-        }, 'image/png');
-      };
-      img.src = URL.createObjectURL(blob);
-    };
 
     const handlePaste = async (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
