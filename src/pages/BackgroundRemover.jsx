@@ -65,6 +65,7 @@ export default function BackgroundRemover() {
             <Dropzone 
               onDrop={(file) => {
                 if (file && file.type.startsWith('image/')) {
+                  setImageFile(file);
                   const reader = new FileReader();
                   reader.onload = (e) => setOriginalSrc(e.target.result);
                   reader.readAsDataURL(file);
