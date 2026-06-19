@@ -5,6 +5,8 @@ import QRCodeStyling from 'qr-code-styling';
 export default function QrGenerator() {
   const [data, setData] = useState('https://github.com/CBTraining/webtoolstest');
   const [size, setSize] = useState(300);
+  const [isGradient, setIsGradient] = useState(true);
+  const [singleColor, setSingleColor] = useState('#ffffff');
   const [color1, setColor1] = useState('#40E0D0');
   const [color2, setColor2] = useState('#12a5d1');
   const [isRounded, setIsRounded] = useState(true);
@@ -19,14 +21,18 @@ export default function QrGenerator() {
       data: data,
       dotsOptions: {
         type: isRounded ? 'rounded' : 'square',
-        gradient: {
-          type: 'linear',
-          rotation: 0.785398, // 45 degrees
-          colorStops: [
-            { offset: 0, color: color1 },
-            { offset: 1, color: color2 }
-          ]
-        }
+        ...(isGradient ? {
+          gradient: {
+            type: 'linear',
+            rotation: 0.785398, // 45 degrees
+            colorStops: [
+              { offset: 0, color: color1 },
+              { offset: 1, color: color2 }
+            ]
+          }
+        } : {
+          color: singleColor
+        })
       },
       cornersSquareOptions: {
         type: isRounded ? 'extra-rounded' : 'square'
@@ -50,21 +56,25 @@ export default function QrGenerator() {
         data: data || ' ',
         dotsOptions: {
           type: isRounded ? 'rounded' : 'square',
-          gradient: {
-            type: 'linear',
-            rotation: 0.785398,
-            colorStops: [
-              { offset: 0, color: color1 },
-              { offset: 1, color: color2 }
-            ]
-          }
+          ...(isGradient ? {
+            gradient: {
+              type: 'linear',
+              rotation: 0.785398,
+              colorStops: [
+                { offset: 0, color: color1 },
+                { offset: 1, color: color2 }
+              ]
+            }
+          } : {
+            color: singleColor
+          })
         },
         cornersSquareOptions: {
           type: isRounded ? 'extra-rounded' : 'square'
         }
       });
     }
-  }, [data, size, color1, color2, isRounded]);
+  }, [data, size, color1, color2, isRounded, isGradient, singleColor]);
 
   const downloadQR = (ext) => {
     if (qrCodeInstance.current) {
@@ -75,8 +85,10 @@ export default function QrGenerator() {
   return (
     <div className="animate-fade-in">
       <header className="page-header">
-        <h1>QR Code Generator</h1>
-        <p>Create highly customizable, beautiful QR codes instantly.</p>
+        <div>
+          <h1 style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><QrCodeIcon style={{width: 32, height: 32}}/> QR Code Generator</h1>
+          <p style={{marginTop: '0.5rem', color: 'var(--text-secondary)'}}>Create highly customizable, beautiful QR codes instantly.</p>
+        </div>
       </header>
 
       <div className="grid-container">
@@ -107,21 +119,43 @@ export default function QrGenerator() {
           </div>
 
           <div className="control-group" style={{marginTop: '1.5rem'}}>
-            <label>Gradient Colors</label>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <input 
-                type="color" 
-                value={color1} 
-                onChange={(e) => setColor1(e.target.value)} 
-                style={{width: '100%', height: '40px', cursor: 'pointer', border: 'none', background: 'none'}}
-              />
-              <input 
-                type="color" 
-                value={color2} 
-                onChange={(e) => setColor2(e.target.value)} 
-                style={{width: '100%', height: '40px', cursor: 'pointer', border: 'none', background: 'none'}}
-              />
-            </div>
+            <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Colors
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 'normal' }}>
+                <input 
+                  type="checkbox" 
+                  checked={isGradient} 
+                  onChange={(e) => setIsGradient(e.target.checked)} 
+                />
+                Use Gradient
+              </label>
+            </label>
+            
+            {isGradient ? (
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <input 
+                  type="color" 
+                  value={color1} 
+                  onChange={(e) => setColor1(e.target.value)} 
+                  style={{width: '100%', height: '40px', cursor: 'pointer', border: 'none', background: 'none'}}
+                />
+                <input 
+                  type="color" 
+                  value={color2} 
+                  onChange={(e) => setColor2(e.target.value)} 
+                  style={{width: '100%', height: '40px', cursor: 'pointer', border: 'none', background: 'none'}}
+                />
+              </div>
+            ) : (
+              <div style={{ marginTop: '0.5rem' }}>
+                <input 
+                  type="color" 
+                  value={singleColor} 
+                  onChange={(e) => setSingleColor(e.target.value)} 
+                  style={{width: '100%', height: '40px', cursor: 'pointer', border: 'none', background: 'none'}}
+                />
+              </div>
+            )}
           </div>
 
           <div className="control-group" style={{marginTop: '1.5rem'}}>
@@ -141,7 +175,9 @@ export default function QrGenerator() {
           <h3>Preview</h3>
           <div style={{ 
             marginTop: '1rem', 
-            background: '#fff', 
+            background: 'var(--bg-secondary)', 
+            backgroundImage: 'radial-gradient(var(--border-color) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
             padding: '1.5rem', 
             borderRadius: 'var(--border-radius)', 
             display: 'inline-block' 

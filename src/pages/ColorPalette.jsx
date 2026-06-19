@@ -40,8 +40,10 @@ export default function ColorPalette() {
   return (
     <div className="animate-fade-in">
       <header className="page-header">
-        <h1>Color Palette Extractor</h1>
-        <p>Upload an image to automatically extract its dominant color and a harmonious palette.</p>
+        <div>
+          <h1 style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}><SwatchIcon style={{width: 32, height: 32}}/> Color Palette Extractor</h1>
+          <p style={{marginTop: '0.5rem', color: 'var(--text-secondary)'}}>Upload an image to automatically extract its dominant color and a harmonious palette.</p>
+        </div>
       </header>
 
       <div className="grid-container">
