@@ -1,7 +1,7 @@
 :root {
   --bg-primary: #0a0a0a;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2d2d2d;
+  --bg-secondary: rgba(26, 26, 26, 0.8);
+  --bg-tertiary: rgba(45, 45, 45, 0.8);
   
   --text-primary: #ffffff;
   --text-secondary: #d1d5db; /* Lighter grey for better visibility */
@@ -51,6 +51,27 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 250px at var(--mouse-x, -250px) var(--mouse-y, -250px),
+    rgba(255, 255, 255, 0.05),
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.glass-panel:hover::before {
+  opacity: 1;
 }
 
 /* Buttons */
