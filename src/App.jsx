@@ -93,16 +93,14 @@ function App() {
     const handlePaste = async (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      const items = e.clipboardData?.items;
-      let hasImageBlob = false;
+      const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
 
       if (items) {
         for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') !== -1) {
-            e.preventDefault();
-            hasImageBlob = true;
+          if (items[i].type.indexOf('image') === 0) {
             const blob = items[i].getAsFile();
             if (blob) {
+              e.preventDefault();
               processImageBlob(blob);
               return;
             }
@@ -110,7 +108,7 @@ function App() {
         }
       }
 
-      if (!hasImageBlob && navigator.clipboard && navigator.clipboard.read) {
+      if (navigator.clipboard && navigator.clipboard.read) {
         try {
           const clipboardItems = await navigator.clipboard.read();
           for (const clipboardItem of clipboardItems) {
@@ -120,7 +118,6 @@ function App() {
                 const blob = await clipboardItem.getType(type);
                 if (blob) {
                   e.preventDefault();
-                  hasImageBlob = true;
                   processImageBlob(blob);
                   return;
                 }
@@ -132,7 +129,7 @@ function App() {
         }
       }
 
-      if (!hasImageBlob) {
+      if (items) {
         for (let i = 0; i < items.length; i++) {
           if (items[i].type === 'text/html') {
             e.preventDefault();
@@ -146,9 +143,10 @@ function App() {
             return;
           }
         }
-        setGlobalToast("No image found in clipboard.");
-        window.dispatchEvent(new Event('paste-error'));
       }
+
+      setGlobalToast("No image found in clipboard.");
+      window.dispatchEvent(new Event('paste-error'));
     };
     
     window.addEventListener('paste', handlePaste);
