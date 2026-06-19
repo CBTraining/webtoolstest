@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { 
   PhotoIcon, 
-  VideoCameraIcon, 
+  FilmIcon,
+  GifIcon,
   ScissorsIcon, 
   CodeBracketSquareIcon, 
   SparklesIcon, 
@@ -70,7 +71,8 @@ export default function Sidebar({ isOpen, onClose }) {
     { to: '/', icon: Square3Stack3DIcon, label: 'Home' },
     { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
     { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
-    { to: '/video-tools', icon: VideoCameraIcon, label: 'Video Tools' },
+    { to: '/video-compressor', icon: FilmIcon, label: 'Video Compressor' },
+    { to: '/video-to-gif', icon: GifIcon, label: 'Video to GIF' },
     { to: '/lottie-to-gif', icon: ScissorsIcon, label: 'Lottie to GIF' },
     { to: '/svg-converter', icon: CommandLineIcon, label: 'SVG Converter' },
     { to: '/json-saver', icon: CodeBracketSquareIcon, label: 'JSON Saver' }

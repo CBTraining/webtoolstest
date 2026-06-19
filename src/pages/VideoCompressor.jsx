@@ -1,16 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { VideoCameraIcon as Video, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
+import { ArrowsPointingInIcon as Compress, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { fetchFile } from '@ffmpeg/util';
 
-export default function VideoTools() {
+export default function VideoCompressor() {
   const [videoFile, setVideoFile] = useState(null);
   const [videoSrc, setVideoSrc] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [log, setLog] = useState('');
   const [resultUrl, setResultUrl] = useState(null);
-  const [resultType, setResultType] = useState(''); // 'video/mp4' or 'image/gif'
 
   const ffmpegRef = useRef(new FFmpeg());
   const isLoadingRef = useRef(false);
@@ -60,7 +59,7 @@ export default function VideoTools() {
     }
   };
 
-  const processVideo = async (action) => {
+  const processVideo = async () => {
     if (!videoFile || !isReady) return;
     setIsProcessing(true);
     setProgress(0);
@@ -71,21 +70,11 @@ export default function VideoTools() {
     // Write file to memory
     await ffmpeg.writeFile('input.mp4', await fetchFile(videoFile));
 
-    if (action === 'compress') {
-      // Compress Video: Re-encode with lower bitrate/CRF
-      await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', '28', '-preset', 'fast', 'output.mp4']);
-      const data = await ffmpeg.readFile('output.mp4');
-      const blob = new Blob([data.buffer], { type: 'video/mp4' });
-      setResultUrl(URL.createObjectURL(blob));
-      setResultType('video/mp4');
-    } else if (action === 'gif') {
-      // Convert to GIF: Generate palette, then apply
-      await ffmpeg.exec(['-i', 'input.mp4', '-vf', 'fps=10,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse', '-loop', '0', 'output.gif']);
-      const data = await ffmpeg.readFile('output.gif');
-      const blob = new Blob([data.buffer], { type: 'image/gif' });
-      setResultUrl(URL.createObjectURL(blob));
-      setResultType('image/gif');
-    }
+    // Compress Video: Re-encode with lower bitrate/CRF
+    await ffmpeg.exec(['-i', 'input.mp4', '-vcodec', 'libx264', '-crf', '28', '-preset', 'fast', 'output.mp4']);
+    const data = await ffmpeg.readFile('output.mp4');
+    const blob = new Blob([data.buffer], { type: 'video/mp4' });
+    setResultUrl(URL.createObjectURL(blob));
 
     setIsProcessing(false);
   };
@@ -93,10 +82,10 @@ export default function VideoTools() {
   return (
     <div className="animate-fade-in">
       <div className="page-header">
-        <Video />
-        <h1>Video Tools</h1>
+        <Compress />
+        <h1>Video Compressor</h1>
       </div>
-      <p>Compress videos or convert them to GIFs instantly, fully in your browser.</p>
+      <p>Compress MP4 videos instantly, fully offline in your browser.</p>
       
       {!isReady && !loadError && (
         <div className="glass-panel" style={{marginBottom: '1rem', background: 'var(--accent-transparent)', border: '1px solid var(--accent-color)'}}>
@@ -130,19 +119,19 @@ export default function VideoTools() {
               <video src={videoSrc} controls style={{width: '100%', borderRadius: 'var(--border-radius-sm)', background: '#000'}} />
               
               {!isProcessing && !resultUrl && (
-                <div className="button-group">
-                  <button className="btn btn-primary" onClick={() => processVideo('compress')}>
+                <div className="button-group" style={{marginTop: '1rem'}}>
+                  <button className="btn btn-primary" onClick={processVideo}>
                     Compress Video
                   </button>
-                  <button className="btn" onClick={() => processVideo('gif')}>
-                    Convert to GIF
+                  <button className="btn" onClick={() => {setVideoSrc(null); setVideoFile(null);}}>
+                    Cancel
                   </button>
                 </div>
               )}
 
               {isProcessing && (
-                <div style={{ textAlign: 'center' }}>
-                  <p>Processing... {Math.round(progress * 100)}%</p>
+                <div style={{ textAlign: 'center', margin: '1rem 0' }}>
+                  <p>Compressing... {Math.round(progress * 100)}%</p>
                   <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '8px', borderRadius: '4px', marginBottom: '0.5rem' }}>
                     <div style={{ width: `${progress * 100}%`, background: 'var(--accent-color)', height: '100%', borderRadius: '4px', transition: 'width 0.2s' }}></div>
                   </div>
@@ -151,9 +140,9 @@ export default function VideoTools() {
               )}
 
               {resultUrl && (
-                <div className="button-group">
-                  <a className="btn btn-primary" href={resultUrl} download={`processed-${Date.now()}.${resultType === 'image/gif' ? 'gif' : 'mp4'}`}>
-                    <Download style={{width: "18px", height: "18px"}} /> Download {resultType === 'image/gif' ? 'GIF' : 'Video'}
+                <div className="button-group" style={{marginTop: '1rem'}}>
+                  <a className="btn btn-primary" href={resultUrl} download={`compressed-${Date.now()}.mp4`}>
+                    <Download style={{width: "18px", height: "18px"}} /> Download MP4
                   </a>
                   <button className="btn" onClick={() => {setVideoSrc(null); setVideoFile(null); setResultUrl(null);}}>
                     Start Over
@@ -166,13 +155,9 @@ export default function VideoTools() {
 
         {resultUrl && (
           <div className="glass-panel preview-panel">
-             <h3>Result</h3>
+             <h3>Compressed Result</h3>
              <div className="canvas-container">
-                {resultType === 'video/mp4' ? (
-                  <video src={resultUrl} controls style={{ maxWidth: '100%', maxHeight: '60vh', background: '#000' }} />
-                ) : (
-                  <img src={resultUrl} alt="GIF Result" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain' }} />
-                )}
+                <video src={resultUrl} controls style={{ maxWidth: '100%', maxHeight: '60vh', background: '#000' }} />
              </div>
           </div>
         )}

@@ -4,7 +4,8 @@ import { Bars3Icon } from '@heroicons/react/24/solid';
 import Sidebar from './components/Sidebar';
 import ImageTools from './pages/ImageTools';
 import BackgroundRemover from './pages/BackgroundRemover';
-import VideoTools from './pages/VideoTools';
+import VideoCompressor from './pages/VideoCompressor';
+import VideoToGif from './pages/VideoToGif';
 import LottieToGif from './pages/LottieToGif';
 import SvgConverter from './pages/SvgConverter';
 import JsonSaver from './pages/JsonSaver';
@@ -136,7 +137,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/image-tools" element={<ImageTools />} />
             <Route path="/bg-remover" element={<BackgroundRemover />} />
-            <Route path="/video-tools" element={<VideoTools />} />
+            <Route path="/video-compressor" element={<VideoCompressor />} />
+            <Route path="/video-to-gif" element={<VideoToGif />} />
             <Route path="/lottie-to-gif" element={<LottieToGif />} />
             <Route path="/svg-converter" element={<SvgConverter />} />
             <Route path="/json-saver" element={<JsonSaver />} />
