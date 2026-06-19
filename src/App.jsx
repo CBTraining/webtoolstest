@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { Bars3Icon } from '@heroicons/react/24/solid';
 import Sidebar from './components/Sidebar';
