@@ -115,7 +115,7 @@ function App() {
               if (imgElement && imgElement.src) {
                 try {
                   // Bypass strict CORS (like Google Slides) by using a proxy
-                  const proxyUrl = \`https://corsproxy.io/?\${encodeURIComponent(imgElement.src)}\`;
+                  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
                   const response = await fetch(proxyUrl);
                   
                   if (!response.ok) throw new Error("Proxy fetch failed");
