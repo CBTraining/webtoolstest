@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { PhotoIcon as Photo, DocumentDuplicateIcon as CopyIcon, CheckIcon as Check } from '@heroicons/react/24/solid';
-import ColorThief from 'colorthief';
+import { getColorSync, getPaletteSync } from 'colorthief';
 
 export default function ColorPalette() {
   const [imageSrc, setImageSrc] = useState(null);
@@ -20,17 +20,11 @@ export default function ColorPalette() {
   const extractColors = () => {
     if (!imgRef.current) return;
     try {
-      const colorThief = new ColorThief();
-      const domColor = colorThief.getColor(imgRef.current);
-      const palColors = colorThief.getPalette(imgRef.current, 8);
+      const domColor = getColorSync(imgRef.current);
+      const palColors = getPaletteSync(imgRef.current, { colorCount: 8 });
       
-      const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => {
-        const hex = x.toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-      }).join('');
-
-      if (domColor) setDominant(rgbToHex(domColor[0], domColor[1], domColor[2]));
-      if (palColors) setPalette(palColors.map(c => rgbToHex(c[0], c[1], c[2])));
+      if (domColor && typeof domColor.hex === 'function') setDominant(domColor.hex());
+      if (palColors) setPalette(palColors.filter(c => typeof c.hex === 'function').map(c => c.hex()));
     } catch (e) {
       console.error("Failed to extract colors. Image might be tainted.", e);
     }
