@@ -148,6 +148,34 @@ function App() {
                   console.warn('Failed to load image from HTML paste via proxies.', err);
                   alert(`Failed to load Google Slides image. It might be heavily restricted by Google. Error: ${err.message}. Src: ${imgElement.src.substring(0, 80)}...`);
                 }
+              } else {
+                // Check if it's an SVG export
+                const svgElement = doc.querySelector('svg');
+                if (svgElement) {
+                  const svgString = new XMLSerializer().serializeToString(svgElement);
+                  const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+                  const url = URL.createObjectURL(svgBlob);
+                  const img = new Image();
+                  img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width || 800;
+                    canvas.height = img.height || 600;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    canvas.toBlob((pngBlob) => {
+                      setPendingBlob(pngBlob);
+                      setFilename('clipboard_image');
+                      setShowModal(true);
+                    }, 'image/png');
+                  };
+                  img.src = url;
+                  return;
+                }
+                
+                // Still nothing? Alert the diagnostic payload if it's from Google Docs
+                if (html.includes('docs-internal-guid') || html.includes('google')) {
+                  alert("We detected a Google Slides paste, but no image or SVG was found! Please tell me this: \\n\\n" + html.substring(0, 500));
+                }
               }
             });
             break;
