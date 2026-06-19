@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import ImageTools from './pages/ImageTools';
@@ -26,9 +26,27 @@ const Home = () => (
 );
 
 function App() {
+  const [showModal, setShowModal] = useState(false);
+  const [filename, setFilename] = useState('clipboard_image');
+  const [pendingBlob, setPendingBlob] = useState(null);
+  const inputRef = useRef(null);
+
+  // Focus input when modal opens
+  useEffect(() => {
+    if (showModal && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [showModal]);
+
   // Global Clipboard Listener
   useEffect(() => {
     const handlePaste = (e) => {
+      // Don't trigger if we're typing in an input or textarea
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
       const items = e.clipboardData.items;
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
@@ -44,15 +62,9 @@ function App() {
             
             canvas.toBlob((pngBlob) => {
               if (!pngBlob) return;
-              const filename = prompt('Enter a name for the PNG file:', 'clipboard_image');
-              if (filename) {
-                const url = URL.createObjectURL(pngBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }
+              setPendingBlob(pngBlob);
+              setFilename('clipboard_image');
+              setShowModal(true);
             }, 'image/png');
           };
           img.src = URL.createObjectURL(blob);
@@ -64,6 +76,24 @@ function App() {
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
   }, []);
+
+  const handleDownload = () => {
+    if (pendingBlob && filename) {
+      const url = URL.createObjectURL(pendingBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename.endsWith('.png') ? filename : `${filename}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    setShowModal(false);
+    setPendingBlob(null);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+    setPendingBlob(null);
+  };
 
   return (
     <Router>
@@ -80,6 +110,30 @@ function App() {
             <Route path="/json-saver" element={<JsonSaver />} />
           </Routes>
         </main>
+
+        {showModal && (
+          <div className="modal-overlay">
+            <div className="modal glass-panel animate-fade-in">
+              <h3>Save Image</h3>
+              <p style={{marginBottom: '1rem', fontSize: '0.9rem'}}>Enter a name for your pasted image.</p>
+              <input 
+                ref={inputRef}
+                type="text" 
+                className="input-field" 
+                value={filename}
+                onChange={(e) => setFilename(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleDownload();
+                  if (e.key === 'Escape') handleCancel();
+                }}
+              />
+              <div className="button-group" style={{justifyContent: 'flex-end', marginTop: '1.5rem'}}>
+                <button className="btn" onClick={handleCancel}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleDownload}>Save</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Router>
   );

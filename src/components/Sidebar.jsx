@@ -88,6 +88,10 @@ export default function Sidebar() {
           <h2>WebTools</h2>
           <span className="version">v2.01</span>
         </div>
+        <div style={{marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4'}}>
+          <p><strong>Tip:</strong> CTRL+V to Save Named.</p>
+          <p>Drag in an image or video to auto convert.</p>
+        </div>
         {isDragging && (
           <div className="drop-overlay animate-fade-in">
             <p>Drop to Convert!</p>
