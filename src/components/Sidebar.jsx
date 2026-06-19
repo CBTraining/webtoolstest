@@ -7,7 +7,9 @@ import {
   CodeBracketSquareIcon, 
   SparklesIcon, 
   CommandLineIcon, 
-  Square3Stack3DIcon
+  Square3Stack3DIcon,
+  SwatchIcon,
+  QrCodeIcon
 } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import './Sidebar.css';
@@ -71,6 +73,8 @@ export default function Sidebar({ isOpen, onClose }) {
     { to: '/', icon: Square3Stack3DIcon, label: 'Home' },
     { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
     { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
+    { to: '/color-palette', icon: SwatchIcon, label: 'Color Palette' },
+    { to: '/qr-generator', icon: QrCodeIcon, label: 'QR Generator' },
     { to: '/video-compressor', icon: FilmIcon, label: 'Video Compressor' },
     { to: '/video-to-gif', icon: GifIcon, label: 'Video to GIF' },
     { to: '/lottie-to-gif', icon: ScissorsIcon, label: 'Lottie to GIF' },
@@ -89,7 +93,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="logo-container" style={{ alignItems: 'center' }}>
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="WebTools Logo" width="28" height="28" style={{ marginRight: '4px' }} />
           <h2>Web<span className="text-gradient">Tools</span></h2>
-          <span className="version">v2.05</span>
+          <span className="version">v2.06</span>
         </div>
         <div style={{marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4'}}>
           <p><strong>Tip:</strong> CTRL+V to Save Named.</p>

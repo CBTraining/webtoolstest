@@ -17,9 +17,11 @@
     "@ffmpeg/util": "^0.12.2",
     "@heroicons/react": "^2.2.0",
     "@imgly/background-removal": "^1.7.0",
+    "colorthief": "^3.3.1",
     "gif.js": "^0.2.0",
     "lottie-web": "^5.13.0",
     "lucide-react": "^1.21.0",
+    "qr-code-styling": "^1.9.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.18.0"

@@ -9,6 +9,8 @@ import VideoToGif from './pages/VideoToGif';
 import LottieToGif from './pages/LottieToGif';
 import SvgConverter from './pages/SvgConverter';
 import JsonSaver from './pages/JsonSaver';
+import ColorPalette from './pages/ColorPalette';
+import QrGenerator from './pages/QrGenerator';
 
 const Home = () => (
   <div className="animate-fade-in">
@@ -54,6 +56,25 @@ function App() {
 
   // Global Clipboard Listener
   useEffect(() => {
+    const processImageBlob = (blob) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob((pngBlob) => {
+          if (!pngBlob) return;
+          setPendingBlob(pngBlob);
+          setFilename('clipboard_image');
+          setShowModal(true);
+        }, 'image/png');
+      };
+      img.src = URL.createObjectURL(blob);
+    };
+
     const handlePaste = (e) => {
       // Don't trigger if we're typing in an input or textarea
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -61,27 +82,55 @@ function App() {
       }
 
       const items = e.clipboardData.items;
+      let hasImageBlob = false;
+
+      // 1. Pass: Native image blob (Normal paste)
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
           e.preventDefault();
+          hasImageBlob = true;
           const blob = items[i].getAsFile();
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            
-            canvas.toBlob((pngBlob) => {
-              if (!pngBlob) return;
-              setPendingBlob(pngBlob);
-              setFilename('clipboard_image');
-              setShowModal(true);
-            }, 'image/png');
-          };
-          img.src = URL.createObjectURL(blob);
-          break; // Process only the first image
+          processImageBlob(blob);
+          break;
+        }
+      }
+
+      // 2. Pass: text/html fallback (Google Slides, Web Content)
+      if (!hasImageBlob) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type === 'text/html') {
+            e.preventDefault();
+            items[i].getAsString((html) => {
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(html, 'text/html');
+              const imgElement = doc.querySelector('img');
+              
+              if (imgElement && imgElement.src) {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous'; // Prevent canvas tainting
+                img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0);
+                  
+                  canvas.toBlob((pngBlob) => {
+                    if (pngBlob) {
+                      setPendingBlob(pngBlob);
+                      setFilename('clipboard_image');
+                      setShowModal(true);
+                    }
+                  }, 'image/png');
+                };
+                img.onerror = () => {
+                  console.warn('Failed to load image from HTML paste. CORS may be blocking it.');
+                };
+                img.src = imgElement.src;
+              }
+            });
+            break;
+          }
         }
       }
     };
@@ -144,6 +193,8 @@ function App() {
             <Route path="/lottie-to-gif" element={<LottieToGif />} />
             <Route path="/svg-converter" element={<SvgConverter />} />
             <Route path="/json-saver" element={<JsonSaver />} />
+            <Route path="/color-palette" element={<ColorPalette />} />
+            <Route path="/qr-generator" element={<QrGenerator />} />
           </Routes>
         </main>
 
