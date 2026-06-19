@@ -6,7 +6,8 @@ import {
   FileJson, 
   ImageMinus, 
   FileCode2, 
-  Layers 
+  Layers,
+  Wrench
 } from 'lucide-react';
 import { useState } from 'react';
 import './Sidebar.css';
@@ -84,7 +85,8 @@ export default function Sidebar() {
       onDrop={handleDrop}
     >
       <div className="sidebar-header">
-        <div className="logo-container">
+        <div className="logo-container" style={{ alignItems: 'center' }}>
+          <Wrench size={24} color="var(--accent-hover)" />
           <h2>WebTools</h2>
           <span className="version">v2.01</span>
         </div>

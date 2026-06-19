@@ -6,8 +6,9 @@
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   
-  --accent-color: #40E0D0; /* Turquoise */
-  --accent-hover: #2db3a3;
+  --accent-color: #40E0D0; /* Turquoise Solid */
+  --accent-gradient: linear-gradient(135deg, #40E0D0 0%, #12a5d1 100%);
+  --accent-hover: #12a5d1;
   --accent-transparent: rgba(64, 224, 208, 0.1);
   --accent-glow: rgba(64, 224, 208, 0.3);
 
@@ -79,7 +80,7 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--accent-color);
+  background: var(--accent-gradient);
   color: #000;
   font-weight: 600;
   box-shadow: 0 0 15px var(--accent-glow);
