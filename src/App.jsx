@@ -82,8 +82,8 @@ function App() {
       img.src = URL.createObjectURL(blob);
     };
 
-    const handlePaste = (e) => {
-      // Don't trigger if we're typing in an input or textarea
+    const handlePaste = async (e) => {
+      // Don't intercept if user is typing in an input fieldor textarea
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
       }
