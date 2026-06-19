@@ -117,10 +117,9 @@ function App() {
           if (item.type === 'text/html') {
             e.preventDefault();
             item.getAsString(async (html) => {
-              const success = await processHtmlPaste(html);
-              if (!success) {
-                // If it fails, print out the raw HTML length and snippet to see what's actually there
-                setGlobalToast(`Failed HTML Extractor. HTML Length: ${html.length}. Preview: ${html.substring(0, 100)}`);
+              const res = await processHtmlPaste(html);
+              if (!res.success) {
+                setGlobalToast(`Ext: ${res.error} Len: ${html.length}`);
                 window.dispatchEvent(new Event('paste-error'));
               }
             });
@@ -160,9 +159,9 @@ function App() {
         if (clipboardItem.types.includes('text/html')) {
           const blob = await clipboardItem.getType('text/html');
           const html = await blob.text();
-          const success = await processHtmlPaste(html);
-          if (success) return;
-          setGlobalToast(`Button HTML Fail. Len: ${html.length}. Preview: ${html.substring(0, 50)}`);
+          const res = await processHtmlPaste(html);
+          if (res.success) return;
+          setGlobalToast(`Ext: ${res.error} Len: ${html.length}`);
           window.dispatchEvent(new Event('paste-error'));
           return;
         }
@@ -179,23 +178,41 @@ function App() {
 
   const processHtmlPaste = async (html) => {
     try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const imgElement = doc.querySelector('img');
+      let src = null;
       
-      if (!imgElement || !imgElement.src) {
-        console.warn("No img tag found in HTML");
-        return false;
+      // 1. Try standard img tag
+      const imgRegex = /<img[^>]+src="([^">]+)"/i;
+      let match = html.match(imgRegex);
+      if (match) src = match[1];
+
+      // 2. Try SVG image tag
+      if (!src) {
+        const svgImgRegex = /<image[^>]+href="([^">]+)"/i;
+        match = html.match(svgImgRegex);
+        if (match) src = match[1];
       }
 
-      const src = imgElement.src;
+      // 3. Try raw data URI anywhere
+      if (!src) {
+        const dataUriRegex = /(data:image\/[^;"'\s]+;base64,[^"'\s]+)/i;
+        match = html.match(dataUriRegex);
+        if (match) src = match[1];
+      }
+
+      if (!src) {
+        return { success: false, error: "No image source found in HTML." };
+      }
 
       // Handle Data URIs immediately
       if (src.startsWith('data:image/')) {
-        const response = await fetch(src);
-        const blob = await response.blob();
-        processImageBlob(blob);
-        return true;
+        try {
+          const response = await fetch(src);
+          const blob = await response.blob();
+          processImageBlob(blob);
+          return { success: true };
+        } catch (err) {
+          return { success: false, error: "Failed to parse data URI." };
+        }
       }
 
       // Handle URLs (like lh3.googleusercontent.com)
@@ -220,28 +237,28 @@ function App() {
       };
 
       try {
-        // Try direct first
         const blob = await loadImage(src);
         processImageBlob(blob);
-        return true;
+        return { success: true };
       } catch (e1) {
-        console.log("Direct load failed, trying proxy 1...");
         try {
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`;
           const blob = await loadImage(proxyUrl);
           processImageBlob(blob);
-          return true;
+          return { success: true };
         } catch (e2) {
-          console.log("Proxy 1 failed, trying proxy 2...");
-          const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(src)}`;
-          const blob = await loadImage(proxyUrl2);
-          processImageBlob(blob);
-          return true;
+          try {
+            const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(src)}`;
+            const blob = await loadImage(proxyUrl2);
+            processImageBlob(blob);
+            return { success: true };
+          } catch (e3) {
+            return { success: false, error: "Network fetch blocked by CORS on all proxies." };
+          }
         }
       }
     } catch (err) {
-      console.warn('Fatal error parsing HTML paste:', err);
-      return false;
+      return { success: false, error: "Fatal extractor error: " + err.message };
     }
   };
 
