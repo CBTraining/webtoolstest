@@ -119,7 +119,8 @@ function App() {
             item.getAsString(async (html) => {
               const success = await processHtmlPaste(html);
               if (!success) {
-                setGlobalToast("Could not extract image from Docs/Slides HTML.");
+                // If it fails, print out the raw HTML length and snippet to see what's actually there
+                setGlobalToast(`Failed HTML Extractor. HTML Length: ${html.length}. Preview: ${html.substring(0, 100)}`);
                 window.dispatchEvent(new Event('paste-error'));
               }
             });
@@ -129,7 +130,7 @@ function App() {
       }
 
       if (!handled) {
-        setGlobalToast("No image found. Paste Types: " + availableTypes.join(', '));
+        setGlobalToast("Ctrl+V Diagnostic: Types seen: " + availableTypes.join(', '));
         window.dispatchEvent(new Event('paste-error'));
       }
     };
@@ -154,17 +155,20 @@ function App() {
         }
       }
 
-      // Try text/html if no images found natively
+      // No native image blob found, let's try reading text/html
       for (const clipboardItem of clipboardItems) {
         if (clipboardItem.types.includes('text/html')) {
           const blob = await clipboardItem.getType('text/html');
           const html = await blob.text();
           const success = await processHtmlPaste(html);
           if (success) return;
+          setGlobalToast(`Button HTML Fail. Len: ${html.length}. Preview: ${html.substring(0, 50)}`);
+          window.dispatchEvent(new Event('paste-error'));
+          return;
         }
       }
       
-      setGlobalToast("No image found! Types seen: " + allTypes.join(', '));
+      setGlobalToast(`Button Diagnostic: Types seen: ${allTypes.join(', ')}`);
       window.dispatchEvent(new Event('paste-error'));
     } catch (err) {
       console.warn("Clipboard API failed:", err);
