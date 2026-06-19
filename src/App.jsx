@@ -94,59 +94,28 @@ function App() {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       const items = (e.clipboardData || e.originalEvent?.clipboardData)?.items;
+      let handled = false;
+      let availableTypes = [];
 
       if (items) {
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type.indexOf('image') === 0) {
-            const blob = items[i].getAsFile();
+        for (let item of items) {
+          availableTypes.push(item.type);
+          if (item.type.indexOf('image') === 0) {
+            const blob = item.getAsFile();
             if (blob) {
               e.preventDefault();
               processImageBlob(blob);
-              return;
+              handled = true;
+              break;
             }
           }
         }
       }
 
-      if (navigator.clipboard && navigator.clipboard.read) {
-        try {
-          const clipboardItems = await navigator.clipboard.read();
-          for (const clipboardItem of clipboardItems) {
-            const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
-            if (imageTypes.length > 0) {
-              for (const type of imageTypes) {
-                const blob = await clipboardItem.getType(type);
-                if (blob) {
-                  e.preventDefault();
-                  processImageBlob(blob);
-                  return;
-                }
-              }
-            }
-          }
-        } catch (err) {
-          console.warn("Async Clipboard API failed:", err);
-        }
+      if (!handled) {
+        setGlobalToast("No image found. Paste Types: " + availableTypes.join(', '));
+        window.dispatchEvent(new Event('paste-error'));
       }
-
-      if (items) {
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].type === 'text/html') {
-            e.preventDefault();
-            items[i].getAsString(async (html) => {
-              const handled = await processHtmlPaste(html);
-              if (!handled) {
-                 setGlobalToast("No image found in clipboard.");
-                 window.dispatchEvent(new Event('paste-error'));
-              }
-            });
-            return;
-          }
-        }
-      }
-
-      setGlobalToast("No image found in clipboard.");
-      window.dispatchEvent(new Event('paste-error'));
     };
     
     window.addEventListener('paste', handlePaste);
@@ -156,93 +125,26 @@ function App() {
   const handleManualPaste = async () => {
     try {
       const clipboardItems = await navigator.clipboard.read();
-      let handled = false;
+      let allTypes = [];
       for (const clipboardItem of clipboardItems) {
+        allTypes.push(...clipboardItem.types);
         const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
-        if (imageTypes.length > 0) {
-          for (const type of imageTypes) {
-            const blob = await clipboardItem.getType(type);
-            if (blob) {
-              processImageBlob(blob);
-              handled = true;
-              return;
-            }
+        for (const type of imageTypes) {
+          const blob = await clipboardItem.getType(type);
+          if (blob) {
+            processImageBlob(blob);
+            return;
           }
-        }
-        // Try text/html if no images found
-        if (!handled && clipboardItem.types.includes('text/html')) {
-          const blob = await clipboardItem.getType('text/html');
-          const html = await blob.text();
-          handled = await processHtmlPaste(html);
-          if (handled) return;
         }
       }
       
-      if (!handled) {
-        setGlobalToast("No image found in clipboard.");
-        window.dispatchEvent(new Event('paste-error'));
-      }
+      setGlobalToast("No image found! Types seen: " + allTypes.join(', '));
+      window.dispatchEvent(new Event('paste-error'));
     } catch (err) {
       console.warn("Clipboard API failed:", err);
-      setGlobalToast("Could not access clipboard. Please grant permission.");
+      setGlobalToast("Clipboard blocked by browser. Please use Ctrl+V instead.");
       window.dispatchEvent(new Event('paste-error'));
     }
-  };
-
-  const processHtmlPaste = async (html) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const imgElement = doc.querySelector('img');
-    
-    if (imgElement && imgElement.src) {
-      try {
-        let response;
-        try {
-          response = await fetch(imgElement.src);
-          if (!response.ok) throw new Error("Direct fetch not ok");
-        } catch (e1) {
-          try {
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
-            response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("CorsProxy failed");
-          } catch (e2) {
-            const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgElement.src)}`;
-            response = await fetch(proxyUrl2);
-          }
-        }
-        
-        if (!response || !response.ok) throw new Error("All proxy attempts failed");
-        
-        const blob = await response.blob();
-        if (blob.type.startsWith('image/')) {
-          processImageBlob(blob);
-          return true;
-        }
-      } catch (err) {
-        console.warn('Failed to load image from HTML paste via proxies.', err);
-      }
-    } else {
-      const svgElement = doc.querySelector('svg');
-      if (svgElement) {
-        const svgString = new XMLSerializer().serializeToString(svgElement);
-        const svgBlob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
-        const url = URL.createObjectURL(svgBlob);
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width || 800;
-          canvas.height = img.height || 600;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          canvas.toBlob((pngBlob) => {
-            processImageBlob(pngBlob);
-          }, 'image/png');
-        };
-        img.src = url;
-        return true;
-      }
-    }
-    return false;
   };
 
   const handleDownload = () => {
