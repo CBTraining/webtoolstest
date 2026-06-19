@@ -11,6 +11,7 @@ import SvgConverter from './pages/SvgConverter';
 import JsonSaver from './pages/JsonSaver';
 import ColorPalette from './pages/ColorPalette';
 import QrGenerator from './pages/QrGenerator';
+import BackgroundDots from './components/BackgroundDots';
 
 const Home = () => (
   <div className="animate-fade-in">
@@ -44,15 +45,12 @@ function App() {
     }
   }, [showModal]);
 
-  // Track mouse position for background proximity effect
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      document.body.style.setProperty('--mouse-x', `${e.clientX}px`);
-      document.body.style.setProperty('--mouse-y', `${e.clientY}px`);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    if (showModal && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [showModal]);
 
   // Global Clipboard Listener
   useEffect(() => {
@@ -159,6 +157,7 @@ function App() {
 
   return (
     <Router>
+      <BackgroundDots />
       <svg width="0" height="0" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
         <defs>
           <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="100%">

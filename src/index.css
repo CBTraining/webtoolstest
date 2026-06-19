@@ -35,26 +35,12 @@
 body {
   font-family: var(--font-family);
   background-color: var(--bg-primary);
-  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
-  background-size: 24px 24px;
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.4) 1.5px, transparent 1.5px);
-  background-size: 24px 24px;
-  mask-image: radial-gradient(circle 80px at var(--mouse-x, -100px) var(--mouse-y, -100px), black 0%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle 80px at var(--mouse-x, -100px) var(--mouse-y, -100px), black 0%, transparent 100%);
-  transition: opacity var(--transition-fast);
-}
 
 /* Glassmorphism Panel */
 .glass-panel {
