@@ -12,20 +12,21 @@ export default function VideoTools() {
   const [resultUrl, setResultUrl] = useState(null);
   const [resultType, setResultType] = useState(''); // 'video/mp4' or 'image/gif'
 
-  // FFmpeg instance
   const ffmpegRef = useRef(new FFmpeg());
+  const isLoadingRef = useRef(false);
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const load = async () => {
       const ffmpeg = ffmpegRef.current;
-      if (ffmpeg.loaded) {
+      if (ffmpeg.loaded || isLoadingRef.current) {
         setIsReady(true);
         return;
       }
+      isLoadingRef.current = true;
       
-      const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
       
       ffmpeg.on('log', ({ message }) => {
         setLog(message);
@@ -43,7 +44,8 @@ export default function VideoTools() {
         setIsReady(true);
       } catch (err) {
         console.error('Failed to load FFmpeg:', err);
-        setLoadError('Failed to load FFmpeg engine. Please check your connection.');
+        setLoadError(`Failed to load: ${err.message || err.toString()}`);
+        isLoadingRef.current = false;
       }
     };
     
