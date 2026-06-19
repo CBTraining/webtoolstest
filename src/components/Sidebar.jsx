@@ -88,7 +88,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <div className="sidebar-header">
         <div className="logo-container" style={{ alignItems: 'center' }}>
           <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="WebTools Logo" width="28" height="28" style={{ marginRight: '4px' }} />
-          <h2>WebTools</h2>
+          <h2>Web<span className="text-gradient">Tools</span></h2>
           <span className="version">v2.04</span>
         </div>
         <div style={{marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4'}}>

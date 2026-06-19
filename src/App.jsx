@@ -123,8 +123,10 @@ function App() {
           <button onClick={() => setIsSidebarOpen(true)}>
             <Bars3Icon style={{width: '28px', height: '28px'}} />
           </button>
-          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" width="24" height="24" style={{marginLeft: '1rem'}} />
-          <h2 style={{margin: '0 0 0 0.5rem', fontSize: '1.2rem', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>WebTools</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1rem' }}>
+            <img src={`${import.meta.env.BASE_URL}masked-icon.svg`} alt="WebTools Logo" width="24" height="24" />
+            <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>Web<span className="text-gradient">Tools</span></span>
+          </div>
         </div>
         
         {isSidebarOpen && (
