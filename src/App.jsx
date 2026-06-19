@@ -180,22 +180,36 @@ function App() {
     try {
       let src = null;
       
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
       // 1. Try standard img tag
-      const imgRegex = /<img[^>]+src="([^">]+)"/i;
-      let match = html.match(imgRegex);
-      if (match) src = match[1];
+      const imgs = doc.querySelectorAll('img');
+      for (let i=0; i<imgs.length; i++) {
+        if (imgs[i].src && imgs[i].src.startsWith('http')) { src = imgs[i].src; break; }
+        if (imgs[i].src && imgs[i].src.startsWith('data:image')) { src = imgs[i].src; break; }
+      }
 
       // 2. Try SVG image tag
       if (!src) {
-        const svgImgRegex = /<image[^>]+href="([^">]+)"/i;
-        match = html.match(svgImgRegex);
+        const svgImgs = doc.querySelectorAll('image');
+        for (let i=0; i<svgImgs.length; i++) {
+          const href = svgImgs[i].getAttribute('href') || svgImgs[i].getAttribute('xlink:href');
+          if (href) { src = href; break; }
+        }
+      }
+
+      // 3. Clean Regex fallback for strictly valid base64 characters
+      if (!src) {
+        const dataUriRegex = /(data:image\/[^;"'\s]+;base64,[a-zA-Z0-9+/=]+)/i;
+        const match = html.match(dataUriRegex);
         if (match) src = match[1];
       }
 
-      // 3. Try raw data URI anywhere
+      // 4. Look for raw google content URLs
       if (!src) {
-        const dataUriRegex = /(data:image\/[^;"'\s]+;base64,[^"'\s]+)/i;
-        match = html.match(dataUriRegex);
+        const urlRegex = /(https:\/\/[a-zA-Z0-9-]+\.googleusercontent\.com\/[^"'\s]+)/i;
+        const match = html.match(urlRegex);
         if (match) src = match[1];
       }
 
@@ -207,11 +221,25 @@ function App() {
       if (src.startsWith('data:image/')) {
         try {
           const response = await fetch(src);
+          if (!response.ok) throw new Error("Fetch response not ok");
           const blob = await response.blob();
           processImageBlob(blob);
           return { success: true };
         } catch (err) {
-          return { success: false, error: "Failed to parse data URI." };
+          // Fallback manual base64 parsing if fetch fails due to size/security
+          try {
+            const arr = src.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--) { u8arr[n] = bstr.charCodeAt(n); }
+            const blob = new Blob([u8arr], {type: mime});
+            processImageBlob(blob);
+            return { success: true };
+          } catch(manualErr) {
+            return { success: false, error: "Data URI fetch and manual atob both failed." };
+          }
         }
       }
 
