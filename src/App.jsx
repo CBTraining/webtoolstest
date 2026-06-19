@@ -114,11 +114,25 @@ function App() {
               
               if (imgElement && imgElement.src) {
                 try {
-                  // Bypass strict CORS (like Google Slides) by using a proxy
-                  const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
-                  const response = await fetch(proxyUrl);
+                  let response;
+                  try {
+                    // 1. Try direct fetch (works if Google sends CORS headers)
+                    response = await fetch(imgElement.src);
+                    if (!response.ok) throw new Error("Direct fetch not ok");
+                  } catch (e1) {
+                    try {
+                      // 2. Fallback to corsproxy.io
+                      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(imgElement.src)}`;
+                      response = await fetch(proxyUrl);
+                      if (!response.ok) throw new Error("CorsProxy failed");
+                    } catch (e2) {
+                      // 3. Fallback to allorigins
+                      const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(imgElement.src)}`;
+                      response = await fetch(proxyUrl2);
+                    }
+                  }
                   
-                  if (!response.ok) throw new Error("Proxy fetch failed");
+                  if (!response || !response.ok) throw new Error("All proxy attempts failed or blocked");
                   
                   const blob = await response.blob();
                   
@@ -128,10 +142,11 @@ function App() {
                     setFilename('clipboard_image');
                     setShowModal(true);
                   } else {
-                    console.warn("Fetched resource is not an image:", blob.type);
+                    alert("Pasted item was parsed, but the fetched resource is not an image (Type: " + blob.type + ")");
                   }
                 } catch (err) {
-                  console.warn('Failed to load image from HTML paste via proxy.', err);
+                  console.warn('Failed to load image from HTML paste via proxies.', err);
+                  alert(`Failed to load Google Slides image. It might be heavily restricted by Google. Error: ${err.message}. Src: ${imgElement.src.substring(0, 80)}...`);
                 }
               }
             });
