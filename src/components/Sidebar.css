@@ -67,6 +67,7 @@
 
 .nav-link svg {
   transform: translateY(-1px);
+  fill: url(#accent-grad);
 }
 
 .nav-link:hover {
