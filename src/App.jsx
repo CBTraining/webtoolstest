@@ -107,33 +107,32 @@ function App() {
         for (let i = 0; i < items.length; i++) {
           if (items[i].type === 'text/html') {
             e.preventDefault();
-            items[i].getAsString((html) => {
+            items[i].getAsString(async (html) => {
               const parser = new DOMParser();
               const doc = parser.parseFromString(html, 'text/html');
               const imgElement = doc.querySelector('img');
               
               if (imgElement && imgElement.src) {
-                const img = new Image();
-                img.crossOrigin = 'Anonymous'; // Prevent canvas tainting
-                img.onload = () => {
-                  const canvas = document.createElement('canvas');
-                  canvas.width = img.width;
-                  canvas.height = img.height;
-                  const ctx = canvas.getContext('2d');
-                  ctx.drawImage(img, 0, 0);
+                try {
+                  // Bypass strict CORS (like Google Slides) by using a proxy
+                  const proxyUrl = \`https://corsproxy.io/?\${encodeURIComponent(imgElement.src)}\`;
+                  const response = await fetch(proxyUrl);
                   
-                  canvas.toBlob((pngBlob) => {
-                    if (pngBlob) {
-                      setPendingBlob(pngBlob);
-                      setFilename('clipboard_image');
-                      setShowModal(true);
-                    }
-                  }, 'image/png');
-                };
-                img.onerror = () => {
-                  console.warn('Failed to load image from HTML paste. CORS may be blocking it.');
-                };
-                img.src = imgElement.src;
+                  if (!response.ok) throw new Error("Proxy fetch failed");
+                  
+                  const blob = await response.blob();
+                  
+                  // Ensure it's an image blob
+                  if (blob.type.startsWith('image/')) {
+                    setPendingBlob(blob);
+                    setFilename('clipboard_image');
+                    setShowModal(true);
+                  } else {
+                    console.warn("Fetched resource is not an image:", blob.type);
+                  }
+                } catch (err) {
+                  console.warn('Failed to load image from HTML paste via proxy.', err);
+                }
               }
             });
             break;

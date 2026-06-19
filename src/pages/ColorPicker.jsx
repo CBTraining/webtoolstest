@@ -37,6 +37,12 @@ export default function ColorPicker() {
       const result = await eyeDropper.open();
       const hex = result.sRGBHex.toUpperCase();
       
+      // Fix for Chrome bug where browser acts like a popup is still open
+      setTimeout(() => {
+        window.focus();
+        if (document.activeElement) document.activeElement.blur();
+      }, 50);
+
       // Add to front of history, avoid duplicates if it's the very first one
       const newColors = [hex, ...colors.filter(c => c !== hex)];
       saveColors(newColors);
