@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { 
-  Image as ImageIcon, 
-  Video, 
-  Scissors, 
-  FileJson, 
-  ImageMinus, 
-  FileCode2, 
-  Layers
-} from 'lucide-react';
+  PhotoIcon, 
+  VideoCameraIcon, 
+  ScissorsIcon, 
+  CodeBracketSquareIcon, 
+  SparklesIcon, 
+  CommandLineIcon, 
+  Square3Stack3DIcon
+} from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import './Sidebar.css';
 
@@ -67,13 +67,13 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { to: '/', icon: Layers, label: 'Home' },
-    { to: '/image-tools', icon: ImageIcon, label: 'Image Tools' },
-    { to: '/bg-remover', icon: ImageMinus, label: 'Background Remover' },
-    { to: '/video-tools', icon: Video, label: 'Video Tools' },
-    { to: '/lottie-to-gif', icon: Scissors, label: 'Lottie to GIF' },
-    { to: '/svg-converter', icon: FileCode2, label: 'SVG Converter' },
-    { to: '/json-saver', icon: FileJson, label: 'JSON Saver' }
+    { to: '/', icon: Square3Stack3DIcon, label: 'Home' },
+    { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
+    { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
+    { to: '/video-tools', icon: VideoCameraIcon, label: 'Video Tools' },
+    { to: '/lottie-to-gif', icon: ScissorsIcon, label: 'Lottie to GIF' },
+    { to: '/svg-converter', icon: CommandLineIcon, label: 'SVG Converter' },
+    { to: '/json-saver', icon: CodeBracketSquareIcon, label: 'JSON Saver' }
   ];
 
   return (
@@ -107,7 +107,7 @@ export default function Sidebar() {
             to={item.to}
             className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}
           >
-            <item.icon size={20} />
+            <item.icon style={{width: "20px", height: "20px"}} />
             <span>{item.label}</span>
           </NavLink>
         ))}

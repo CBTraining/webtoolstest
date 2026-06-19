@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileJson, Download, Check, AlertCircle } from 'lucide-react';
+import { CodeBracketSquareIcon as FileJson, ArrowDownTrayIcon as Download, CheckIcon as Check, ExclamationCircleIcon as AlertCircle } from '@heroicons/react/24/solid';
 
 export default function JsonSaver() {
   const [jsonText, setJsonText] = useState('');
@@ -49,8 +49,8 @@ export default function JsonSaver() {
       <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <label style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>JSON Content:</label>
-          {error && <span style={{ color: 'var(--danger-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}><AlertCircle size={16}/> {error}</span>}
-          {success && <span style={{ color: 'var(--success-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}><Check size={16}/> Saved Successfully!</span>}
+          {error && <span style={{ color: 'var(--danger-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}><AlertCircle style={{width: "16px", height: "16px"}}/> {error}</span>}
+          {success && <span style={{ color: 'var(--success-color)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}><Check style={{width: "16px", height: "16px"}}/> Saved Successfully!</span>}
         </div>
         
         <textarea 
@@ -67,7 +67,7 @@ export default function JsonSaver() {
             Format JSON
           </button>
           <button className="btn btn-primary" onClick={handleSave}>
-            <Download size={18} /> Download .json
+            <Download style={{width: "18px", height: "18px"}} /> Download .json
           </button>
         </div>
       </div>

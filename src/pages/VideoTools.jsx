@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Video, UploadCloud, Download } from 'lucide-react';
+import { VideoCameraIcon as Video, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
@@ -138,7 +138,7 @@ export default function VideoTools() {
               {resultUrl && (
                 <div className="button-group">
                   <a className="btn btn-primary" href={resultUrl} download={`processed-${Date.now()}.${resultType === 'image/gif' ? 'gif' : 'mp4'}`}>
-                    <Download size={18} /> Download {resultType === 'image/gif' ? 'GIF' : 'Video'}
+                    <Download style={{width: "18px", height: "18px"}} /> Download {resultType === 'image/gif' ? 'GIF' : 'Video'}
                   </a>
                   <button className="btn" onClick={() => {setVideoSrc(null); setVideoFile(null); setResultUrl(null);}}>
                     Start Over

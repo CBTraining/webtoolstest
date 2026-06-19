@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { FileCode2, Download } from 'lucide-react';
+import { CommandLineIcon as FileCode2, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 
 export default function SvgConverter() {
   const [svgText, setSvgText] = useState('');
@@ -102,7 +102,7 @@ export default function SvgConverter() {
                  <img src={previewUrl} alt="SVG Preview" style={{ maxWidth: '100%', maxHeight: '400px', border: '1px solid var(--border-color)' }} />
               </div>
               <button className="btn btn-primary" onClick={handleDownload}>
-                <Download size={18} /> Download PNG
+                <Download style={{width: "18px", height: "18px"}} /> Download PNG
               </button>
             </div>
           ) : (

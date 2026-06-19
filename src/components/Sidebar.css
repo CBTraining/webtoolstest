@@ -63,7 +63,10 @@
   text-decoration: none;
   border-radius: var(--border-radius-sm);
   transition: all var(--transition-fast);
-  line-height: 1;
+}
+
+.nav-link svg {
+  transform: translateY(-1px);
 }
 
 .nav-link:hover {

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Scissors, UploadCloud, Download } from 'lucide-react';
+import { ScissorsIcon as Scissors, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import lottie from 'lottie-web';
 import GIF from 'gif.js';
 
@@ -143,7 +143,7 @@ export default function LottieToGif() {
               {gifUrl && (
                 <div className="button-group" style={{justifyContent: 'center'}}>
                   <a className="btn btn-primary" href={gifUrl} download={`lottie-${Date.now()}.gif`}>
-                    <Download size={18} /> Download GIF
+                    <Download style={{width: "18px", height: "18px"}} /> Download GIF
                   </a>
                   <button className="btn" onClick={() => {setLottieData(null); setGifUrl(null);}}>
                     Convert Another

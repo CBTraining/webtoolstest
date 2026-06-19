@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ImageMinus, UploadCloud, Download } from 'lucide-react';
+import { SparklesIcon as ImageMinus, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import { removeBackground } from '@imgly/background-removal';
 
 export default function BackgroundRemover() {
@@ -94,7 +94,7 @@ export default function BackgroundRemover() {
                {resultSrc && (
                  <div className="button-group">
                    <a className="btn btn-primary" href={resultSrc} download={`nobg-${Date.now()}.png`}>
-                     <Download size={18} /> Download Result
+                     <Download style={{width: "18px", height: "18px"}} /> Download Result
                    </a>
                    <button className="btn" onClick={() => {setOriginalSrc(null); setImageFile(null); setResultSrc(null);}}>
                      Reset

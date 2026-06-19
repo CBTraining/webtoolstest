@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ImageIcon, Download, UploadCloud } from 'lucide-react';
+import { PhotoIcon as ImageIcon, ArrowDownTrayIcon as Download, CloudArrowUpIcon as UploadCloud } from '@heroicons/react/24/solid';
 import './ImageTools.css'; // Will create
 
 export default function ImageTools() {
@@ -145,10 +145,10 @@ export default function ImageTools() {
               
               <div className="button-group">
                 <button className="btn btn-primary" onClick={handleDownload}>
-                  <Download size={18} /> Download PNG
+                  <Download style={{width: "18px", height: "18px"}} /> Download PNG
                 </button>
                 <button className="btn" onClick={handleDownloadJPEG}>
-                  <Download size={18} /> Download JPEG
+                  <Download style={{width: "18px", height: "18px"}} /> Download JPEG
                 </button>
                 <button className="btn" onClick={() => {setImageSrc(null); setImageFile(null);}}>
                   Reset
