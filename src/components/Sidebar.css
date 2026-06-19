@@ -34,7 +34,6 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 400;
-  letter-spacing: -0.5px;
   color: var(--text-primary);
 }
 
@@ -43,6 +42,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 700;
+  font-size: 1em;
 }
 
 .version {
