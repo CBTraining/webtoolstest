@@ -69,17 +69,37 @@ export default function Sidebar({ isOpen, onClose }) {
     }
   };
 
-  const navItems = [
-    { to: '/', icon: Square3Stack3DIcon, label: 'Home' },
-    { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
-    { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
-    { to: '/color-palette', icon: SwatchIcon, label: 'Color Palette' },
-    { to: '/qr-generator', icon: QrCodeIcon, label: 'QR Generator' },
-    { to: '/video-compressor', icon: FilmIcon, label: 'Video Compressor' },
-    { to: '/video-to-gif', icon: GifIcon, label: 'Video to GIF' },
-    { to: '/lottie-to-gif', icon: ScissorsIcon, label: 'Lottie to GIF' },
-    { to: '/svg-converter', icon: CommandLineIcon, label: 'SVG Converter' },
-    { to: '/json-saver', icon: CodeBracketSquareIcon, label: 'JSON Saver' }
+  const navCategories = [
+    {
+      title: 'General',
+      items: [
+        { to: '/', icon: Square3Stack3DIcon, label: 'Home' }
+      ]
+    },
+    {
+      title: 'Graphics',
+      items: [
+        { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
+        { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
+        { to: '/color-palette', icon: SwatchIcon, label: 'Color Palette' },
+        { to: '/svg-converter', icon: CommandLineIcon, label: 'SVG Converter' }
+      ]
+    },
+    {
+      title: 'Video & Animation',
+      items: [
+        { to: '/video-compressor', icon: FilmIcon, label: 'Video Compressor' },
+        { to: '/video-to-gif', icon: GifIcon, label: 'Video to GIF' },
+        { to: '/lottie-to-gif', icon: ScissorsIcon, label: 'Lottie to GIF' }
+      ]
+    },
+    {
+      title: 'Web & Dev',
+      items: [
+        { to: '/qr-generator', icon: QrCodeIcon, label: 'QR Generator' },
+        { to: '/json-saver', icon: CodeBracketSquareIcon, label: 'JSON Saver' }
+      ]
+    }
   ];
 
   return (
@@ -106,19 +126,26 @@ export default function Sidebar({ isOpen, onClose }) {
         )}
       </div>
 
-      <nav className="sidebar-nav">
-        {navItems.map((item) => (
-          <NavLink 
-            key={item.to} 
-            to={item.to}
-            className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={() => { if(onClose) onClose(); }}
-          >
-            <item.icon style={{width: "20px", height: "20px"}} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+        <nav className="sidebar-nav">
+          {navCategories.map((category, idx) => (
+            <div key={idx} className="nav-category">
+              {category.title !== 'General' && (
+                <h4 className="nav-category-title">{category.title}</h4>
+              )}
+              {category.items.map((item) => (
+                <NavLink 
+                  key={item.to} 
+                  to={item.to} 
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                  onClick={onClose}
+                >
+                  <item.icon style={{width: '20px', height: '20px'}} />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          ))}
+        </nav>
     </aside>
   );
 }
