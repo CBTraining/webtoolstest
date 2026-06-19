@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { VideoCameraIcon as Video, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import coreURL from '@ffmpeg/core/dist/umd/ffmpeg-core.js?url';
-import wasmURL from '@ffmpeg/core/dist/umd/ffmpeg-core.wasm?url';
 
 export default function VideoTools() {
   const [videoFile, setVideoFile] = useState(null);
@@ -37,9 +35,10 @@ export default function VideoTools() {
       });
 
       try {
+        const baseURL = `${import.meta.env.BASE_URL}ffmpeg`;
         await ffmpeg.load({
-          coreURL: await toBlobURL(coreURL, 'text/javascript'),
-          wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
         });
         setIsReady(true);
       } catch (err) {
