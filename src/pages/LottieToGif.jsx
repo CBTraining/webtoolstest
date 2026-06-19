@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { ScissorsIcon as Scissors, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
+import Dropzone from '../components/Dropzone';
 import lottie from 'lottie-web';
 import GIF from 'gif.js';
 
@@ -9,35 +10,6 @@ export default function LottieToGif() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [gifUrl, setGifUrl] = useState(null);
   const containerRef = useRef(null);
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.name.endsWith('.json')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const json = JSON.parse(event.target.result);
-          setLottieData(json);
-          setGifUrl(null);
-          
-          // Render preview
-          if (containerRef.current) {
-            containerRef.current.innerHTML = '';
-            lottie.loadAnimation({
-              container: containerRef.current,
-              renderer: 'svg',
-              loop: true,
-              autoplay: true,
-              animationData: json,
-            });
-          }
-        } catch (err) {
-          alert('Invalid Lottie JSON file');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
 
   const handleConvert = async () => {
     if (!lottieData) return;
@@ -108,17 +80,43 @@ export default function LottieToGif() {
       <div className="grid-container">
         <div className="glass-panel controls">
           {!lottieData ? (
-            <div className="dropzone">
-              <UploadCloud />
-              <h3>Upload Lottie JSON</h3>
-              <p>Select your animation file</p>
-              <input 
-                type="file" 
-                accept="application/json" 
-                onChange={handleFileUpload} 
-                style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
-              />
-            </div>
+            <Dropzone 
+              onDrop={(file) => {
+                if (file && file.name.endsWith('.json')) {
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    try {
+                      const json = JSON.parse(e.target.result);
+                      setLottieData(json);
+                      setGifUrl(null);
+                      
+                      // Render preview
+                      setTimeout(() => {
+                        if (containerRef.current) {
+                          containerRef.current.innerHTML = '';
+                          lottie.loadAnimation({
+                            container: containerRef.current,
+                            renderer: 'svg',
+                            loop: true,
+                            autoplay: true,
+                            animationData: json,
+                          });
+                        }
+                      }, 0);
+                    } catch (err) {
+                      alert("Invalid JSON file");
+                    }
+                  };
+                  reader.readAsText(file);
+                } else {
+                  alert("Please upload a .json Lottie file");
+                }
+              }}
+              accept=".json"
+              title="Upload Lottie JSON"
+              subtitle="Drag & drop or click to select"
+              icon={<UploadCloud style={{width: 48, height: 48}}/>}
+            />
           ) : (
             <div className="controls">
               <div className="glass-panel" style={{background: 'var(--bg-tertiary)', display: 'flex', justifyContent: 'center'}}>

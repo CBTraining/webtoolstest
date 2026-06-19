@@ -7,8 +7,9 @@ import {
   CodeBracketSquareIcon, 
   SparklesIcon, 
   CommandLineIcon, 
+  CommandLineIcon, 
   Square3Stack3DIcon,
-  SwatchIcon,
+  EyeDropperIcon,
   QrCodeIcon
 } from '@heroicons/react/24/solid';
 import { useState } from 'react';
@@ -81,7 +82,7 @@ export default function Sidebar({ isOpen, onClose }) {
       items: [
         { to: '/image-tools', icon: PhotoIcon, label: 'Image Tools' },
         { to: '/bg-remover', icon: SparklesIcon, label: 'Background Remover' },
-        { to: '/color-palette', icon: SwatchIcon, label: 'Color Palette' },
+        { to: '/color-picker', icon: EyeDropperIcon, label: 'Color Picker' },
         { to: '/svg-converter', icon: CommandLineIcon, label: 'SVG Converter' }
       ]
     },

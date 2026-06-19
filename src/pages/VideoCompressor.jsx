@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowsPointingInIcon as Compress, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
+import Dropzone from '../components/Dropzone';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 import { playDing } from '../utils/audio';
@@ -51,15 +52,6 @@ export default function VideoCompressor() {
     load();
   }, []);
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('video/')) {
-      setVideoFile(file);
-      setVideoSrc(URL.createObjectURL(file));
-      setResultUrl(null);
-    }
-  };
-
   const processVideo = async () => {
     if (!videoFile || !isReady) return;
     setIsProcessing(true);
@@ -103,19 +95,21 @@ export default function VideoCompressor() {
 
       <div className="grid-container">
         <div className="glass-panel controls">
-          {!videoSrc ? (
-            <div className="dropzone">
-              <UploadCloud />
-              <h3>Upload Video</h3>
-              <p>Select an MP4, WebM, or MOV file</p>
-              <input 
-                type="file" 
-                accept="video/*" 
-                onChange={handleFileUpload} 
-                style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
-                disabled={!isReady}
-              />
-            </div>
+          {!videoFile ? (
+            <Dropzone 
+              onDrop={(file) => {
+                if (file && file.type.startsWith('video/')) {
+                  setVideoFile(file);
+                  setVideoSrc(URL.createObjectURL(file));
+                } else {
+                  alert("Please upload a video file");
+                }
+              }}
+              accept="video/*"
+              title="Upload Video"
+              subtitle="Drag & drop or click to select"
+              icon={<UploadCloud style={{width: 48, height: 48}}/>}
+            />
           ) : (
             <div className="controls">
               <video src={videoSrc} controls style={{width: '100%', borderRadius: 'var(--border-radius-sm)', background: '#000'}} />

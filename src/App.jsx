@@ -9,7 +9,7 @@ import VideoToGif from './pages/VideoToGif';
 import LottieToGif from './pages/LottieToGif';
 import SvgConverter from './pages/SvgConverter';
 import JsonSaver from './pages/JsonSaver';
-import ColorPalette from './pages/ColorPalette';
+import ColorPicker from './pages/ColorPicker';
 import QrGenerator from './pages/QrGenerator';
 import BackgroundDots from './components/BackgroundDots';
 
@@ -201,7 +201,7 @@ function App() {
             <Route path="/lottie-to-gif" element={<LottieToGif />} />
             <Route path="/svg-converter" element={<SvgConverter />} />
             <Route path="/json-saver" element={<JsonSaver />} />
-            <Route path="/color-palette" element={<ColorPalette />} />
+            <Route path="/color-picker" element={<ColorPicker />} />
             <Route path="/qr-generator" element={<QrGenerator />} />
           </Routes>
         </main>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { SparklesIcon as ImageMinus, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
+import { SparklesIcon as ImageMinus } from '@heroicons/react/24/solid';
+import { CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/outline';
+import Dropzone from '../components/Dropzone';
 import { removeBackground } from '@imgly/background-removal';
 
 export default function BackgroundRemover() {
@@ -60,17 +62,18 @@ export default function BackgroundRemover() {
       <div className="grid-container">
         <div className="glass-panel controls">
           {!originalSrc ? (
-            <div className="dropzone">
-              <UploadCloud />
-              <h3>Upload Image</h3>
-              <p>Select an image to remove its background</p>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleFileUpload} 
-                style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
-              />
-            </div>
+            <Dropzone 
+              onDrop={(file) => {
+                if (file && file.type.startsWith('image/')) {
+                  const reader = new FileReader();
+                  reader.onload = (e) => setOriginalSrc(e.target.result);
+                  reader.readAsDataURL(file);
+                }
+              }}
+              title="Upload Image"
+              subtitle="Select an image to remove its background"
+              icon={<UploadCloud style={{width: 48, height: 48}}/>}
+            />
           ) : (
             <div className="controls">
                <img src={originalSrc} alt="Original" style={{maxWidth: '100%', borderRadius: 'var(--border-radius-sm)'}} />

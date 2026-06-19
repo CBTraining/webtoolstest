@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { PhotoIcon as ImageIcon, ArrowDownTrayIcon as Download, CloudArrowUpIcon as UploadCloud } from '@heroicons/react/24/solid';
+import { PhotoIcon as ImageIcon, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
+import Dropzone from '../components/Dropzone';
 import './ImageTools.css'; // Will create
 
 export default function ImageTools() {
@@ -102,17 +103,18 @@ export default function ImageTools() {
       <div className="grid-container">
         <div className="glass-panel tool-controls">
           {!imageSrc ? (
-            <div className="dropzone">
-              <UploadCloud />
-              <h3>Upload Image</h3>
-              <p>Click or drag an image here</p>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleFileUpload} 
-                style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}} 
-              />
-            </div>
+            <Dropzone 
+              onDrop={(file) => {
+                if (file && file.type.startsWith('image/')) {
+                  const reader = new FileReader();
+                  reader.onload = (e) => setImageSrc(e.target.result);
+                  reader.readAsDataURL(file);
+                }
+              }}
+              title="Upload Image"
+              subtitle="Click or drag an image here"
+              icon={<UploadCloud style={{width: 48, height: 48}}/>}
+            />
           ) : (
             <div className="controls">
               <div className="control-group">
