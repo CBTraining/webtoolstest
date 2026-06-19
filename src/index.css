@@ -68,6 +68,7 @@ body {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
   text-decoration: none;
+  line-height: 1;
 }
 
 .btn:hover {
@@ -197,6 +198,7 @@ p {
   background: linear-gradient(135deg, #fff 0%, #aaa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1;
 }
 
 .page-header svg {
