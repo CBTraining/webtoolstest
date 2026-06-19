@@ -112,6 +112,22 @@ function App() {
         }
       }
 
+      if (!handled && items) {
+        for (let item of items) {
+          if (item.type === 'text/html') {
+            e.preventDefault();
+            item.getAsString(async (html) => {
+              const success = await processHtmlPaste(html);
+              if (!success) {
+                setGlobalToast("Could not extract image from Docs/Slides HTML.");
+                window.dispatchEvent(new Event('paste-error'));
+              }
+            });
+            return; // Exit early since it's async
+          }
+        }
+      }
+
       if (!handled) {
         setGlobalToast("No image found. Paste Types: " + availableTypes.join(', '));
         window.dispatchEvent(new Event('paste-error'));
@@ -137,6 +153,16 @@ function App() {
           }
         }
       }
+
+      // Try text/html if no images found natively
+      for (const clipboardItem of clipboardItems) {
+        if (clipboardItem.types.includes('text/html')) {
+          const blob = await clipboardItem.getType('text/html');
+          const html = await blob.text();
+          const success = await processHtmlPaste(html);
+          if (success) return;
+        }
+      }
       
       setGlobalToast("No image found! Types seen: " + allTypes.join(', '));
       window.dispatchEvent(new Event('paste-error'));
@@ -144,6 +170,74 @@ function App() {
       console.warn("Clipboard API failed:", err);
       setGlobalToast("Clipboard blocked by browser. Please use Ctrl+V instead.");
       window.dispatchEvent(new Event('paste-error'));
+    }
+  };
+
+  const processHtmlPaste = async (html) => {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const imgElement = doc.querySelector('img');
+      
+      if (!imgElement || !imgElement.src) {
+        console.warn("No img tag found in HTML");
+        return false;
+      }
+
+      const src = imgElement.src;
+
+      // Handle Data URIs immediately
+      if (src.startsWith('data:image/')) {
+        const response = await fetch(src);
+        const blob = await response.blob();
+        processImageBlob(blob);
+        return true;
+      }
+
+      // Handle URLs (like lh3.googleusercontent.com)
+      const loadImage = (url) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width || 800;
+            canvas.height = img.height || 600;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error("Canvas toBlob failed"));
+            }, 'image/png');
+          };
+          img.onerror = () => reject(new Error("Image failed to load crossOrigin"));
+          img.src = url;
+        });
+      };
+
+      try {
+        // Try direct first
+        const blob = await loadImage(src);
+        processImageBlob(blob);
+        return true;
+      } catch (e1) {
+        console.log("Direct load failed, trying proxy 1...");
+        try {
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`;
+          const blob = await loadImage(proxyUrl);
+          processImageBlob(blob);
+          return true;
+        } catch (e2) {
+          console.log("Proxy 1 failed, trying proxy 2...");
+          const proxyUrl2 = `https://corsproxy.io/?${encodeURIComponent(src)}`;
+          const blob = await loadImage(proxyUrl2);
+          processImageBlob(blob);
+          return true;
+        }
+      }
+    } catch (err) {
+      console.warn('Fatal error parsing HTML paste:', err);
+      return false;
     }
   };
 
