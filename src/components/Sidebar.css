@@ -120,9 +120,13 @@
 }
 
 .nav-link.active {
-  background-color: var(--accent-transparent);
-  color: var(--accent-color);
+  background: var(--accent-gradient);
+  color: #ffffff;
   font-weight: 500;
+}
+
+.nav-link.active svg {
+  fill: #ffffff;
 }
 
 .drop-overlay {
