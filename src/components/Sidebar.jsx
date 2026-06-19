@@ -7,7 +7,6 @@ import {
   CodeBracketSquareIcon, 
   SparklesIcon, 
   CommandLineIcon, 
-  CommandLineIcon, 
   Square3Stack3DIcon,
   EyeDropperIcon,
   QrCodeIcon
