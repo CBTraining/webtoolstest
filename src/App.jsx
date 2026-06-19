@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { Bars3Icon } from '@heroicons/react/24/solid';
 import Sidebar from './components/Sidebar';
 import ImageTools from './pages/ImageTools';
 import BackgroundRemover from './pages/BackgroundRemover';
@@ -29,6 +30,7 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [filename, setFilename] = useState('clipboard_image');
   const [pendingBlob, setPendingBlob] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const inputRef = useRef(null);
 
   // Focus input when modal opens
@@ -98,7 +100,19 @@ function App() {
   return (
     <Router>
       <div className="app-layout">
-        <Sidebar />
+        <div className="mobile-header">
+          <button onClick={() => setIsSidebarOpen(true)}>
+            <Bars3Icon style={{width: '28px', height: '28px'}} />
+          </button>
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="Logo" width="24" height="24" style={{marginLeft: '1rem'}} />
+          <h2 style={{margin: '0 0 0 0.5rem', fontSize: '1.2rem', background: 'var(--accent-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'}}>WebTools</h2>
+        </div>
+        
+        {isSidebarOpen && (
+          <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+        )}
+
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />

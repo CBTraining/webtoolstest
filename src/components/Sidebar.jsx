@@ -11,7 +11,7 @@ import {
 import { useState } from 'react';
 import './Sidebar.css';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Handle Drag Events for Passive Side-bar Drops
@@ -78,7 +78,7 @@ export default function Sidebar() {
 
   return (
     <aside 
-      className={`sidebar glass-panel ${isDragging ? 'drag-active' : ''}`}
+      className={`sidebar glass-panel ${isDragging ? 'drag-active' : ''} ${isOpen ? 'open' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -106,6 +106,7 @@ export default function Sidebar() {
             key={item.to} 
             to={item.to}
             className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}
+            onClick={() => { if(onClose) onClose(); }}
           >
             <item.icon style={{width: "20px", height: "20px"}} />
             <span>{item.label}</span>
