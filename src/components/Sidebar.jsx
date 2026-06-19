@@ -9,12 +9,13 @@ import {
   CommandLineIcon, 
   Square3Stack3DIcon,
   EyeDropperIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  ClipboardDocumentIcon
 } from '@heroicons/react/24/solid';
 import { useState } from 'react';
 import './Sidebar.css';
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, onManualPaste }) {
   const [isDragging, setIsDragging] = useState(false);
 
   // Handle Drag Events for Passive Side-bar Drops
@@ -146,6 +147,17 @@ export default function Sidebar({ isOpen, onClose }) {
             </div>
           ))}
         </nav>
+
+      <div style={{ padding: '1.5rem', marginTop: 'auto', borderTop: '1px solid var(--border-default)' }}>
+        <button 
+          onClick={onManualPaste}
+          className="btn btn-primary" 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+        >
+          <ClipboardDocumentIcon style={{width: '20px', height: '20px'}} />
+          Paste to PNG
+        </button>
+      </div>
     </aside>
   );
 }

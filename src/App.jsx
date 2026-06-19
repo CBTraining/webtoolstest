@@ -88,21 +88,48 @@ function App() {
         return;
       }
 
-      const items = e.clipboardData.items;
+      const items = e.clipboardData?.items;
       let hasImageBlob = false;
 
       // 1. Pass: Native image blob (Normal paste)
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          e.preventDefault();
-          hasImageBlob = true;
-          const blob = items[i].getAsFile();
-          processImageBlob(blob);
-          break;
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf('image') !== -1) {
+            e.preventDefault();
+            hasImageBlob = true;
+            const blob = items[i].getAsFile();
+            if (blob) {
+              processImageBlob(blob);
+              return;
+            }
+          }
         }
       }
 
-      // 2. Pass: text/html fallback (Google Slides, Web Content)
+      // 2. Pass: Try Async Clipboard API (for heavily sandboxed sources like Google Slides)
+      if (!hasImageBlob && navigator.clipboard && navigator.clipboard.read) {
+        try {
+          const clipboardItems = await navigator.clipboard.read();
+          for (const clipboardItem of clipboardItems) {
+            const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
+            if (imageTypes.length > 0) {
+              for (const type of imageTypes) {
+                const blob = await clipboardItem.getType(type);
+                if (blob) {
+                  e.preventDefault();
+                  hasImageBlob = true;
+                  processImageBlob(blob);
+                  return;
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Async Clipboard API failed:", err);
+        }
+      }
+
+      // 3. Pass: text/html fallback (Google Slides, Web Content)
       if (!hasImageBlob) {
         for (let i = 0; i < items.length; i++) {
           if (items[i].type === 'text/html') {
@@ -188,6 +215,28 @@ function App() {
     return () => window.removeEventListener('paste', handlePaste);
   }, []);
 
+  const handleManualPaste = async () => {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      for (const clipboardItem of clipboardItems) {
+        const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
+        if (imageTypes.length > 0) {
+          for (const type of imageTypes) {
+            const blob = await clipboardItem.getType(type);
+            if (blob) {
+              processImageBlob(blob);
+              return;
+            }
+          }
+        }
+      }
+      alert("No image found in clipboard. Make sure you copied an image!");
+    } catch (err) {
+      console.warn("Clipboard API failed:", err);
+      alert("Could not access clipboard. Please ensure you have granted clipboard permissions to this site.");
+    }
+  };
+
   const handleDownload = () => {
     if (pendingBlob && filename) {
       const url = URL.createObjectURL(pendingBlob);
@@ -232,7 +281,7 @@ function App() {
           <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
         )}
 
-        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onManualPaste={handleManualPaste} />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
