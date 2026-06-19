@@ -61,9 +61,7 @@ export default function ColorPicker() {
   };
 
   const clearAll = () => {
-    if (confirm("Are you sure you want to clear your color history?")) {
-      saveColors([]);
-    }
+    saveColors([]);
   };
 
   return (
