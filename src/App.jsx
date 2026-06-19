@@ -230,7 +230,11 @@ function App() {
           try {
             const arr = src.split(',');
             const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
+            // Aggressively strip all whitespace, newlines, and html entities from the base64 data
+            let b64Data = arr[1].replace(/[\s\r\n]+/g, '').replace(/&quot;/g, '').replace(/&amp;/g, '&');
+            if (b64Data.endsWith('"') || b64Data.endsWith("'")) b64Data = b64Data.slice(0, -1);
+            
+            const bstr = atob(b64Data);
             let n = bstr.length;
             const u8arr = new Uint8Array(n);
             while(n--) { u8arr[n] = bstr.charCodeAt(n); }
@@ -238,7 +242,7 @@ function App() {
             processImageBlob(blob);
             return { success: true };
           } catch(manualErr) {
-            return { success: false, error: "Data URI fetch and manual atob both failed." };
+            return { success: false, error: `atob failed: ${manualErr.message}. Src len: ${src.length}` };
           }
         }
       }
