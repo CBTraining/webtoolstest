@@ -6,8 +6,7 @@ import {
   FileJson, 
   ImageMinus, 
   FileCode2, 
-  Layers,
-  Wrench
+  Layers
 } from 'lucide-react';
 import { useState } from 'react';
 import './Sidebar.css';
@@ -86,7 +85,7 @@ export default function Sidebar() {
     >
       <div className="sidebar-header">
         <div className="logo-container" style={{ alignItems: 'center' }}>
-          <Wrench size={24} color="var(--accent-hover)" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="WebTools Logo" width="28" height="28" style={{ marginRight: '4px' }} />
           <h2>WebTools</h2>
           <span className="version">v2.01</span>
         </div>
