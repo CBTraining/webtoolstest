@@ -61,8 +61,8 @@ body {
   inset: 0;
   pointer-events: none;
   background: radial-gradient(
-    circle 250px at var(--mouse-x, -250px) var(--mouse-y, -250px),
-    rgba(255, 255, 255, 0.05),
+    circle 200px at var(--mouse-x, -200px) var(--mouse-y, -200px),
+    rgba(255, 255, 255, 0.025),
     transparent 80%
   );
   opacity: 0;
@@ -177,6 +177,8 @@ p {
   justify-content: center;
   gap: 1rem;
   background-color: var(--bg-secondary);
+  position: relative;
+  overflow: hidden;
 }
 
 .dropzone:hover, .dropzone.active {
