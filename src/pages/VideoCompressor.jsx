@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ArrowsPointingInIcon as Compress, CloudArrowUpIcon as UploadCloud, ArrowDownTrayIcon as Download } from '@heroicons/react/24/solid';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
+import { playDing } from '../utils/audio';
 
 export default function VideoCompressor() {
   const [videoFile, setVideoFile] = useState(null);
@@ -77,6 +78,7 @@ export default function VideoCompressor() {
     setResultUrl(URL.createObjectURL(blob));
 
     setIsProcessing(false);
+    playDing();
   };
 
   return (
@@ -130,12 +132,23 @@ export default function VideoCompressor() {
               )}
 
               {isProcessing && (
-                <div style={{ textAlign: 'center', margin: '1rem 0' }}>
-                  <p>Compressing... {Math.round(progress * 100)}%</p>
-                  <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '8px', borderRadius: '4px', marginBottom: '0.5rem' }}>
+                <div className="glass-panel animate-fade-in" style={{
+                  position: 'fixed',
+                  bottom: '2rem',
+                  right: '2rem',
+                  width: '320px',
+                  zIndex: 50,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  border: '1px solid var(--accent-color)'
+                }}>
+                  <h4 style={{marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem'}}>
+                    <div className="loader" style={{width: '14px', height: '14px'}}></div>
+                    Compressing... {Math.round(progress * 100)}%
+                  </h4>
+                  <div style={{ width: '100%', background: 'var(--bg-tertiary)', height: '6px', borderRadius: '4px', marginBottom: '0.5rem' }}>
                     <div style={{ width: `${progress * 100}%`, background: 'var(--accent-color)', height: '100%', borderRadius: '4px', transition: 'width 0.2s' }}></div>
                   </div>
-                  <small style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', display: 'block', height: '1.5em', overflow: 'hidden' }}>{log}</small>
+                  <small style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', display: 'block', height: '1.5em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{log}</small>
                 </div>
               )}
 

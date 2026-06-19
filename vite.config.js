@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'WebTools v2.03',
+        name: 'WebTools v2.04',
         short_name: 'WebTools',
         description: 'Offline-capable WebTools suite',
         theme_color: '#0a0a0a',
