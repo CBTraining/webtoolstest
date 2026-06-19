@@ -37,8 +37,8 @@ export default function VideoTools() {
       try {
         const baseURL = `${import.meta.env.BASE_URL}ffmpeg`;
         await ffmpeg.load({
-          coreURL: `${baseURL}/ffmpeg-core.js`,
-          wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+          coreURL: `${baseURL}/ffmpeg-core.js?v=2`,
+          wasmURL: `${baseURL}/ffmpeg-core.wasm?v=2`,
         });
         setIsReady(true);
       } catch (err) {
